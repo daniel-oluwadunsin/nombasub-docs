@@ -26,20 +26,18 @@
         "pages": [
           "index",
           "quickstart",
-          "authentication",
-          "environments"
+          "authentication"
         ]
       },
       {
         "group": "Core Concepts",
-        "icon": "layers",
+        "icon": "starfighter-twin-ion-engine-advanced",
         "pages": [
           "core-concepts/how-the-engine-works",
           "core-concepts/tenants",
           "core-concepts/plans",
           "core-concepts/customers",
           "core-concepts/subscriptions",
-          "core-concepts/invoices",
           "core-concepts/payment-sources",
           "core-concepts/subscription-states",
           "core-concepts/invoice-states"
@@ -53,7 +51,6 @@
           "guides/charge-tokenized-card",
           "guides/handle-nomba-webhooks",
           "guides/configure-merchant-webhooks",
-          "guides/subaccounts-and-settlement",
           "guides/test-billing-flow",
           "guides/nomba-integration",
           "guides/webhook-events"
@@ -61,7 +58,7 @@
       },
       {
         "group": "API Reference",
-        "icon": "braces",
+        "icon": "file-doc",
         "pages": [
           "api-reference/auth",
           "api-reference/plans",
