@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
+  "theme": "luma",
   "name": "Nomba Subscriptions Engine",
   "colors": {
     "primary": "#EAB308",
@@ -93,7 +93,7 @@
   },
   "logo": {
     "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "dark": "/images/ChatGPT_Image_Jul_3__2026__12_21_18_AM__2___1_-removebg-preview.png"
   },
   "navbar": {
     "links": [
@@ -113,7 +113,8 @@
       "mcp",
       "cursor",
       "vscode"
-    ]
+    ],
+    "display": "toc"
   },
   "footer": {
     "socials": {
@@ -123,5 +124,11 @@
   "appearance": {
     "default": "system",
     "strict": false
+  },
+  "icons": {
+    "library": "lucide"
+  },
+  "fonts": {
+    "family": "Sora"
   }
 }
