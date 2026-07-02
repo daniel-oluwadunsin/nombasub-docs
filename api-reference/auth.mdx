@@ -1,0 +1,115 @@
+---
+title: "Auth"
+description: "Register and log in tenants to obtain API keys."
+---
+
+# Auth API
+
+Auth endpoints create tenant access and return API keys used on `/v1` endpoints.
+
+## POST /auth/register
+
+Create a tenant and return an API key.
+
+```bash
+curl -X POST https://nombasub.oluwadunsin.dev/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "businessName": "Acme SaaS",
+    "accountId": "nomba_account_or_subaccount_id"
+  }'
+```
+
+### Request body
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `businessName` | string | Yes | Business name. |
+| `accountId` | string | Yes | Nomba account/subaccount ID mapped to the tenant. |
+
+### Response
+
+```json
+{
+  "status": "success",
+  "message": "Tenant registered successfully",
+  "data": {
+    "apiKey": "sub_xxx"
+  }
+}
+```
+
+### Conflict response
+
+```json
+{
+  "status": "error",
+  "message": "A tenant has already been created for this account id",
+  "data": null
+}
+```
+
+## POST /auth/login
+
+Return the API key for an existing tenant account ID.
+
+```bash
+curl -X POST https://nombasub.oluwadunsin.dev/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "accountId": "nomba_account_or_subaccount_id"
+  }'
+```
+
+### Response
+
+```json
+{
+  "status": "success",
+  "message": "Tenant logged in successfully",
+  "data": {
+    "apiKey": "sub_xxx"
+  }
+}
+```
+
+### Not found response
+
+```json
+{
+  "status": "error",
+  "message": "Tenant not found",
+  "data": null
+}
+```
+
+## POST /auth/set-webhook-url
+
+Set the tenant webhook URL and return a webhook secret.
+
+```bash
+curl -X POST https://nombasub.oluwadunsin.dev/auth/set-webhook-url \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_xxx" \
+  -d '{
+    "webhookUrl": "https://merchant.example.com/webhooks/nombasub"
+  }'
+```
+
+### Request body
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `webhookUrl` | string | Yes | HTTPS endpoint that receives merchant webhooks. |
+
+### Response
+
+```json
+{
+  "status": "success",
+  "message": "Webhook URL set successfully",
+  "data": {
+    "webhookSecret": "whsec_64_character_secret"
+  }
+}
+```

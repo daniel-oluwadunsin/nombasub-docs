@@ -1,0 +1,78 @@
+---
+title: "Billing Lifecycle"
+description: "Internal invoice, trial, renewal, and payment attempt processing."
+---
+
+# Billing Lifecycle
+
+## In a nutshell
+
+The billing engine is centered on subscriptions, invoices, payment attempts, and payment sources.
+
+```txt
+Subscription due
+  -> Invoice created/opened
+  -> Payment source selected
+  -> Payment intent created
+  -> Nomba checkout or tokenized-card charge
+  -> Invoice paid or failed
+  -> Subscription advanced or paused
+  -> Webhook and email queued
+```
+
+## Upcoming invoices
+
+The invoice service creates upcoming `draft` invoices for active subscriptions whose `currentBillingCycleStart` falls within the next 3 days and does not already have a draft/open invoice for that due date.
+
+Events/emails:
+
+- `invoice.upcoming`
+- `upcoming_invoice.html`
+
+## Due invoices
+
+A due subscription is active, has `currentBillingCycleStart <= now`, and either has no trial or has already started paid billing.
+
+Processing behavior:
+
+1. Ensure an invoice exists.
+2. Open draft invoice if needed.
+3. Attach invoice as subscription `latestInvoiceId`.
+4. If no payment source exists, create checkout.
+5. If active card source exists, charge tokenized card.
+6. On success, mark invoice paid and advance cycle.
+7. On failure, mark invoice failed and pause subscription.
+
+## Trial lifecycle
+
+Trial fields are date-based. There is no separate `trialing` status.
+
+| Field | Meaning |
+| --- | --- |
+| `trialStartDate` | Trial begins. |
+| `trialEndDate` | Trial ends. |
+| `trialEndingSoonSent` | Prevents duplicate soon-ending notification. |
+| `startedAt` | Paid billing has started. |
+
+Trial events/emails:
+
+- `subscription.trial_ending_soon`
+- `subscription.billing_started`
+- `trial_ending_soon.html`
+- `trial_ended_billing_started.html`
+
+## Payment failure
+
+Failed collection sets:
+
+- Invoice `status = failed`
+- Invoice `failedAt`
+- Invoice `failureReason`
+- Subscription `status = paused`
+- Subscription `pausedAt`
+
+Events/emails:
+
+- `invoice.payment_failed` or `invoice.marked_uncollectible`
+- `subscription.paused`
+- `subscription_paused.html`

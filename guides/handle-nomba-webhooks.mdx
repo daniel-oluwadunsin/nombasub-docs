@@ -1,0 +1,35 @@
+---
+title: "Handle Nomba Webhooks"
+description: "How the internal Nomba webhook endpoint updates billing state."
+---
+
+# Handle Nomba Webhooks
+
+## In a nutshell
+
+Nomba webhooks are provider events received by the Subscriptions Engine. You normally do not consume these directly. Instead, the engine turns them into normalized merchant webhooks for your app.
+
+## Internal webhook endpoint
+
+```txt
+POST /webhook/nomba
+```
+
+Nomba sends payment updates to this endpoint. The engine uses those updates to confirm payments, save tokenized card data, update invoice state, and emit merchant-facing events.
+
+## Supported provider events
+
+| Event | Result |
+| --- | --- |
+| `payment_success` | Payment is confirmed, card token may be saved, invoice/subscription state is updated. |
+| `payment_failed` | Payment is marked failed, invoice fails, and subscription may be paused. |
+
+## What you should integrate
+
+As a merchant, integrate the merchant webhook layer instead:
+
+- Configure your webhook URL.
+- Verify webhook signatures when a secret is configured.
+- Handle normalized billing events idempotently.
+
+See [Configure Merchant Webhooks](/guides/configure-merchant-webhooks).

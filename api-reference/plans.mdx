@@ -1,0 +1,231 @@
+---
+title: "Plans"
+description: "Create, list, retrieve, and update subscription plans."
+---
+
+# Plans API
+
+Plans define price, currency, interval, trial length, invoice limits, and status. All plan endpoints require `X-Api-Key`.
+
+## Plan object
+
+```json
+{
+  "id": "0a7c1f34-9b12-4d6c-8d45-4db61f463678",
+  "createdAt": "2026-07-02T09:00:00Z",
+  "updatedAt": "2026-07-02T09:00:00Z",
+  "name": "Growth Monthly",
+  "description": "Monthly subscription for growing teams",
+  "code": "PLN_8AbC123x",
+  "amount": 500000,
+  "currency": "NGN",
+  "interval": "monthly",
+  "intervalCount": 1,
+  "trialPeriodDays": 14,
+  "invoiceLimit": null,
+  "status": "active",
+  "archivedAt": null
+}
+```
+
+## POST /v1/plan/
+
+Create a plan.
+
+```bash
+curl -X POST https://nombasub.oluwadunsin.dev/v1/plan/ \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_xxx" \
+  -d '{
+    "name": "Growth Monthly",
+    "description": "Monthly subscription for growing teams",
+    "amount": 500000,
+    "currency": "NGN",
+    "interval": "monthly",
+    "intervalCount": 1,
+    "trialPeriodDays": 14,
+    "invoiceLimit": null
+  }'
+```
+
+### Request body
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | string | Yes | Plan name. |
+| `description` | string | No | Plan description. |
+| `amount` | integer | Yes | Amount in minor units. |
+| `currency` | string | Yes | `NGN`. |
+| `interval` | enum | Yes | `daily`, `weekly`, `bi-weekly`, `monthly`, `quarterly`, `yearly`. |
+| `intervalCount` | integer | No | Interval multiplier. |
+| `trialPeriodDays` | integer | No | Trial length in days. |
+| `invoiceLimit` | integer | No | Maximum invoices before completion logic. |
+
+### Response
+
+```json
+{
+  "status": "success",
+  "message": "Plan created successfully",
+  "data": {
+    "id": "0a7c1f34-9b12-4d6c-8d45-4db61f463678",
+    "createdAt": "2026-07-02T09:00:00Z",
+    "updatedAt": "2026-07-02T09:00:00Z",
+    "name": "Growth Monthly",
+    "description": "Monthly subscription for growing teams",
+    "code": "PLN_8AbC123x",
+    "amount": 500000,
+    "currency": "NGN",
+    "interval": "monthly",
+    "intervalCount": 1,
+    "trialPeriodDays": 14,
+    "invoiceLimit": null,
+    "status": "active",
+    "archivedAt": null
+  }
+}
+```
+
+## GET /v1/plan/
+
+List plans.
+
+```bash
+curl "https://nombasub.oluwadunsin.dev/v1/plan/?page=1&limit=10&status=active&interval=monthly" \
+  -H "X-Api-Key: sub_xxx"
+```
+
+### Query parameters
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `page` | integer | Page number. |
+| `limit` | integer | Page size. |
+| `search` | string | Accepted pagination query value. |
+| `status` | enum | `active` or `inactive`. |
+| `interval` | enum | Plan interval. |
+| `amount` | integer | Exact amount filter. |
+
+### Response
+
+```json
+{
+  "status": "success",
+  "message": "Plans retrieved successfully",
+  "data": {
+    "data": [
+      {
+        "id": "0a7c1f34-9b12-4d6c-8d45-4db61f463678",
+        "createdAt": "2026-07-02T09:00:00Z",
+        "updatedAt": "2026-07-02T09:00:00Z",
+        "name": "Growth Monthly",
+        "description": "Monthly subscription for growing teams",
+        "code": "PLN_8AbC123x",
+        "amount": 500000,
+        "currency": "NGN",
+        "interval": "monthly",
+        "intervalCount": 1,
+        "trialPeriodDays": 14,
+        "invoiceLimit": null,
+        "status": "active",
+        "archivedAt": null
+      }
+    ],
+    "totalCount": 1,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  }
+}
+```
+
+## GET /v1/plan/:planCode
+
+Retrieve one plan.
+
+```bash
+curl https://nombasub.oluwadunsin.dev/v1/plan/PLN_8AbC123x \
+  -H "X-Api-Key: sub_xxx"
+```
+
+### Response
+
+```json
+{
+  "status": "success",
+  "message": "Plan retrieved successfully",
+  "data": {
+    "id": "0a7c1f34-9b12-4d6c-8d45-4db61f463678",
+    "createdAt": "2026-07-02T09:00:00Z",
+    "updatedAt": "2026-07-02T09:00:00Z",
+    "name": "Growth Monthly",
+    "description": "Monthly subscription for growing teams",
+    "code": "PLN_8AbC123x",
+    "amount": 500000,
+    "currency": "NGN",
+    "interval": "monthly",
+    "intervalCount": 1,
+    "trialPeriodDays": 14,
+    "invoiceLimit": null,
+    "status": "active",
+    "archivedAt": null
+  }
+}
+```
+
+## PUT /v1/plan/:planCode
+
+Update a plan. The engine creates a new plan version after an update.
+
+```bash
+curl -X PUT https://nombasub.oluwadunsin.dev/v1/plan/PLN_8AbC123x \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_xxx" \
+  -d '{
+    "amount": 750000,
+    "trialPeriodDays": 7,
+    "status": "active",
+    "updateExistingSubscriptions": true
+  }'
+```
+
+### Request body
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `name` | string | New name. |
+| `description` | string | New description. |
+| `amount` | integer | New amount. |
+| `interval` | enum | New interval. |
+| `intervalCount` | integer | New interval count. |
+| `trialPeriodDays` | integer | New trial length. |
+| `invoiceLimit` | integer | New invoice limit. |
+| `status` | enum | `active` or `inactive`. |
+| `updateExistingSubscriptions` | boolean | Apply the new version to existing subscriptions on their next billing cycle. |
+
+### Response
+
+```json
+{
+  "status": "success",
+  "message": "Plan updated successfully",
+  "data": {
+    "id": "0a7c1f34-9b12-4d6c-8d45-4db61f463678",
+    "createdAt": "2026-07-02T09:00:00Z",
+    "updatedAt": "2026-07-02T10:00:00Z",
+    "name": "Growth Monthly",
+    "description": "Monthly subscription for growing teams",
+    "code": "PLN_8AbC123x",
+    "amount": 750000,
+    "currency": "NGN",
+    "interval": "monthly",
+    "intervalCount": 1,
+    "trialPeriodDays": 7,
+    "invoiceLimit": null,
+    "status": "active",
+    "archivedAt": null
+  }
+}
+```

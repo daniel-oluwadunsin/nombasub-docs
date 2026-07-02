@@ -1,0 +1,311 @@
+---
+title: "Subscriptions"
+description: "Create and retrieve customer subscriptions."
+---
+
+# Subscriptions API
+
+Subscriptions connect customers to plans. All endpoints require `X-Api-Key`.
+
+## Subscription object
+
+Subscription list and retrieve endpoints preload `customer`, `plan`, and `paymentSource`.
+
+```json
+{
+  "id": "1f3e2db6-12bb-4bd0-a910-86bd8f8edbee",
+  "createdAt": "2026-07-02T09:12:00Z",
+  "updatedAt": "2026-07-02T09:12:00Z",
+  "customerId": "98e4fd8d-662a-4e21-9217-841a1748a129",
+  "planId": "0a7c1f34-9b12-4d6c-8d45-4db61f463678",
+  "code": "SUB_a1b2c3d4",
+  "planVersionId": "af3c828b-37f8-494a-8ca2-80570d0a6739",
+  "paymentSourceId": "4f7b8d02-82ca-4dbb-94d9-0c128e78420b",
+  "paymentSourceType": "card",
+  "interval": "monthly",
+  "amount": 500000,
+  "currency": "NGN",
+  "intervalCount": 1,
+  "trialPeriodDays": 0,
+  "trialStartDate": null,
+  "trialEndDate": null,
+  "trialEndingSoonSent": false,
+  "currentBillingCycleStart": "2026-07-02T09:12:00Z",
+  "currentBillingCycleEnd": "2026-08-02T09:12:00Z",
+  "cancelledAtEndOfBillingCycle": false,
+  "startedAt": "2026-07-02T09:12:00Z",
+  "cancelledAt": null,
+  "completedAt": null,
+  "pausedAt": null,
+  "invoiceLimit": null,
+  "invoiceCount": 1,
+  "latestInvoiceId": "633d90ef-60e5-4777-a071-70cc5157276e",
+  "status": "active"
+}
+```
+
+## POST /v1/subscription/
+
+Create a subscription for an existing customer and plan.
+
+```bash
+curl -X POST https://nombasub.oluwadunsin.dev/v1/subscription/ \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_xxx" \
+  -d '{
+    "customerEmailOrCode": "customer@example.com",
+    "planCode": "PLN_8AbC123x",
+    "cardToken": "tok_live_xxx"
+  }'
+```
+
+### Request body
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `customerEmailOrCode` | string | Yes | Customer email or code. |
+| `planCode` | string | Yes | Plan code. |
+| `cardToken` | string | No | Existing saved card token to attach. |
+| `mandateId` | string | No | Existing saved bank mandate ID. |
+
+### Response
+
+```json
+{
+  "status": "success",
+  "message": "Subscription Created Successfully",
+  "data": {
+    "id": "1f3e2db6-12bb-4bd0-a910-86bd8f8edbee",
+    "createdAt": "2026-07-02T09:12:00Z",
+    "updatedAt": "2026-07-02T09:12:00Z",
+    "customerId": "98e4fd8d-662a-4e21-9217-841a1748a129",
+    "planId": "0a7c1f34-9b12-4d6c-8d45-4db61f463678",
+    "code": "SUB_a1b2c3d4",
+    "planVersionId": "af3c828b-37f8-494a-8ca2-80570d0a6739",
+    "paymentSourceId": "4f7b8d02-82ca-4dbb-94d9-0c128e78420b",
+    "paymentSourceType": "card",
+    "interval": "monthly",
+    "amount": 500000,
+    "currency": "NGN",
+    "intervalCount": 1,
+    "trialPeriodDays": 0,
+    "trialStartDate": null,
+    "trialEndDate": null,
+    "trialEndingSoonSent": false,
+    "currentBillingCycleStart": "2026-07-02T09:12:00Z",
+    "currentBillingCycleEnd": "2026-08-02T09:12:00Z",
+    "cancelledAtEndOfBillingCycle": false,
+    "startedAt": "2026-07-02T09:12:00Z",
+    "cancelledAt": null,
+    "completedAt": null,
+    "pausedAt": null,
+    "invoiceLimit": null,
+    "invoiceCount": 0,
+    "latestInvoiceId": null,
+    "status": "active"
+  }
+}
+```
+
+## GET /v1/subscription/
+
+List subscriptions.
+
+```bash
+curl "https://nombasub.oluwadunsin.dev/v1/subscription/?page=1&limit=10&customer=customer@example.com&plan=PLN_8AbC123x" \
+  -H "X-Api-Key: sub_xxx"
+```
+
+### Query parameters
+
+| Parameter | Description |
+| --- | --- |
+| `page` | Page number. |
+| `limit` | Page size. |
+| `customer` | Customer ID, code, external reference, or email. |
+| `plan` | Plan ID or code. |
+
+### Response
+
+```json
+{
+  "status": "success",
+  "message": "Subscriptions retrieved successfully",
+  "data": {
+    "data": [
+      {
+        "id": "1f3e2db6-12bb-4bd0-a910-86bd8f8edbee",
+        "createdAt": "2026-07-02T09:12:00Z",
+        "updatedAt": "2026-07-02T09:12:00Z",
+        "customerId": "98e4fd8d-662a-4e21-9217-841a1748a129",
+        "planId": "0a7c1f34-9b12-4d6c-8d45-4db61f463678",
+        "code": "SUB_a1b2c3d4",
+        "planVersionId": "af3c828b-37f8-494a-8ca2-80570d0a6739",
+        "paymentSourceId": "4f7b8d02-82ca-4dbb-94d9-0c128e78420b",
+        "paymentSourceType": "card",
+        "interval": "monthly",
+        "amount": 500000,
+        "currency": "NGN",
+        "intervalCount": 1,
+        "trialPeriodDays": 0,
+        "trialStartDate": null,
+        "trialEndDate": null,
+        "trialEndingSoonSent": false,
+        "currentBillingCycleStart": "2026-07-02T09:12:00Z",
+        "currentBillingCycleEnd": "2026-08-02T09:12:00Z",
+        "cancelledAtEndOfBillingCycle": false,
+        "startedAt": "2026-07-02T09:12:00Z",
+        "cancelledAt": null,
+        "completedAt": null,
+        "pausedAt": null,
+        "invoiceLimit": null,
+        "invoiceCount": 1,
+        "latestInvoiceId": "633d90ef-60e5-4777-a071-70cc5157276e",
+        "status": "active",
+        "customer": {
+          "id": "98e4fd8d-662a-4e21-9217-841a1748a129",
+          "createdAt": "2026-07-02T09:05:00Z",
+          "updatedAt": "2026-07-02T09:05:00Z",
+          "name": "Ada Lovelace",
+          "email": "customer@example.com",
+          "phoneNumber": "+2348012345678",
+          "code": "CUST_9XyZ456q",
+          "externalRef": "user_123"
+        },
+        "plan": {
+          "id": "0a7c1f34-9b12-4d6c-8d45-4db61f463678",
+          "createdAt": "2026-07-02T09:00:00Z",
+          "updatedAt": "2026-07-02T09:00:00Z",
+          "name": "Growth Monthly",
+          "description": "Monthly subscription for growing teams",
+          "code": "PLN_8AbC123x",
+          "amount": 500000,
+          "currency": "NGN",
+          "interval": "monthly",
+          "intervalCount": 1,
+          "trialPeriodDays": 0,
+          "invoiceLimit": null,
+          "status": "active",
+          "archivedAt": null
+        },
+        "paymentSource": {
+          "id": "4f7b8d02-82ca-4dbb-94d9-0c128e78420b",
+          "createdAt": "2026-07-02T09:10:00Z",
+          "updatedAt": "2026-07-02T09:10:00Z",
+          "customerId": "98e4fd8d-662a-4e21-9217-841a1748a129",
+          "type": "card",
+          "card": {
+            "type": "visa",
+            "pan": "539983******1234",
+            "last4Digits": "1234",
+            "currency": "NGN",
+            "authorizationToken": "tok_live_xxx",
+            "expiryMonth": "12",
+            "expiryYear": "2028"
+          },
+          "status": "active",
+          "expirationMailSent": false
+        }
+      }
+    ],
+    "totalCount": 1,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  }
+}
+```
+
+## GET /v1/subscription/:idOrCode
+
+Retrieve a subscription by ID or subscription code.
+
+```bash
+curl https://nombasub.oluwadunsin.dev/v1/subscription/SUB_a1b2c3d4 \
+  -H "X-Api-Key: sub_xxx"
+```
+
+### Response
+
+```json
+{
+  "status": "success",
+  "message": "Subscription retrieved successfully",
+  "data": {
+    "id": "1f3e2db6-12bb-4bd0-a910-86bd8f8edbee",
+    "createdAt": "2026-07-02T09:12:00Z",
+    "updatedAt": "2026-07-02T09:12:00Z",
+    "customerId": "98e4fd8d-662a-4e21-9217-841a1748a129",
+    "planId": "0a7c1f34-9b12-4d6c-8d45-4db61f463678",
+    "code": "SUB_a1b2c3d4",
+    "planVersionId": "af3c828b-37f8-494a-8ca2-80570d0a6739",
+    "paymentSourceId": "4f7b8d02-82ca-4dbb-94d9-0c128e78420b",
+    "paymentSourceType": "card",
+    "interval": "monthly",
+    "amount": 500000,
+    "currency": "NGN",
+    "intervalCount": 1,
+    "trialPeriodDays": 0,
+    "trialStartDate": null,
+    "trialEndDate": null,
+    "trialEndingSoonSent": false,
+    "currentBillingCycleStart": "2026-07-02T09:12:00Z",
+    "currentBillingCycleEnd": "2026-08-02T09:12:00Z",
+    "cancelledAtEndOfBillingCycle": false,
+    "startedAt": "2026-07-02T09:12:00Z",
+    "cancelledAt": null,
+    "completedAt": null,
+    "pausedAt": null,
+    "invoiceLimit": null,
+    "invoiceCount": 1,
+    "latestInvoiceId": "633d90ef-60e5-4777-a071-70cc5157276e",
+    "status": "active",
+    "customer": {
+      "id": "98e4fd8d-662a-4e21-9217-841a1748a129",
+      "createdAt": "2026-07-02T09:05:00Z",
+      "updatedAt": "2026-07-02T09:05:00Z",
+      "name": "Ada Lovelace",
+      "email": "customer@example.com",
+      "phoneNumber": "+2348012345678",
+      "code": "CUST_9XyZ456q",
+      "externalRef": "user_123"
+    },
+    "plan": {
+      "id": "0a7c1f34-9b12-4d6c-8d45-4db61f463678",
+      "createdAt": "2026-07-02T09:00:00Z",
+      "updatedAt": "2026-07-02T09:00:00Z",
+      "name": "Growth Monthly",
+      "description": "Monthly subscription for growing teams",
+      "code": "PLN_8AbC123x",
+      "amount": 500000,
+      "currency": "NGN",
+      "interval": "monthly",
+      "intervalCount": 1,
+      "trialPeriodDays": 0,
+      "invoiceLimit": null,
+      "status": "active",
+      "archivedAt": null
+    },
+    "paymentSource": {
+      "id": "4f7b8d02-82ca-4dbb-94d9-0c128e78420b",
+      "createdAt": "2026-07-02T09:10:00Z",
+      "updatedAt": "2026-07-02T09:10:00Z",
+      "customerId": "98e4fd8d-662a-4e21-9217-841a1748a129",
+      "type": "card",
+      "card": {
+        "type": "visa",
+        "pan": "539983******1234",
+        "last4Digits": "1234",
+        "currency": "NGN",
+        "authorizationToken": "tok_live_xxx",
+        "expiryMonth": "12",
+        "expiryYear": "2028"
+      },
+      "status": "active",
+      "expirationMailSent": false
+    }
+  }
+}
+```

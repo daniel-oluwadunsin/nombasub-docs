@@ -1,0 +1,34 @@
+---
+title: "Webhook Security"
+description: "Verify and safely process merchant webhooks."
+---
+
+# Webhook Security
+
+## In a nutshell
+
+Webhook security protects your integration from forged events and duplicate processing.
+
+## Headers
+
+Merchant webhook deliveries can include:
+
+| Header | Description |
+| --- | --- |
+| `x-nombasub-event` | Event type. |
+| `x-nombasub-webhook-id` | Delivery ID. |
+| `x-nombasub-tenant-id` | Tenant ID. |
+| `x-nombasub-timestamp` | Event timestamp. |
+| `x-nombasub-signature` | Signature when signing is configured. |
+
+## Verification
+
+When a signing secret is configured, verify the signature before processing the webhook. The signature is based on event type, webhook ID, tenant ID, timestamp, and your webhook secret.
+
+## Best practices
+
+- Use HTTPS webhook URLs.
+- Return 2xx quickly.
+- Process events asynchronously.
+- Store processed webhook IDs to prevent duplicates.
+- Treat webhook payloads as notifications; fetch fresh data when public read endpoints are available.

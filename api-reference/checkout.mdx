@@ -1,0 +1,85 @@
+---
+title: "Checkout"
+description: "Initialize Nomba Checkout for card-backed subscription payments."
+---
+
+# Checkout API
+
+Checkout is used to collect the first card payment and tokenize the card for future renewals.
+
+## POST /v1/checkout/order
+
+Initialize a checkout order for a plan and customer email. Requires `X-Api-Key`.
+
+```bash
+curl -X POST https://nombasub.oluwadunsin.dev/v1/checkout/order \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_xxx" \
+  -d '{
+    "planCode": "PLN_8AbC123x",
+    "order": {
+      "callbackUrl": "https://merchant.example.com/callback",
+      "customerEmail": "customer@example.com",
+      "amount": 0,
+      "currency": "NGN",
+      "orderReference": "merchant_order_123",
+      "orderMetaData": {
+        "source": "pricing-page"
+      }
+    }
+  }'
+```
+
+## Request body
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `planCode` | string | Yes | Plan code. |
+| `order.callbackUrl` | string | Yes | Checkout callback URL. |
+| `order.customerEmail` | string | Yes | Customer email. |
+| `order.amount` | integer | Yes | Accepted in request, overwritten with plan amount. |
+| `order.currency` | string | No | Accepted in request, overwritten with plan currency. |
+| `order.orderReference` | string | No | Merchant reference stored in metadata. |
+| `order.customerId` | string | No | Optional provider customer ID. |
+| `order.accountId` | string | No | Optional account ID override. |
+| `order.orderMetaData` | object | No | Extra metadata. |
+
+The engine forces card-only checkout and enables card tokenization.
+
+## Response
+
+```json
+{
+  "status": "success",
+  "message": "Transaction initialized successfully",
+  "data": {
+    "checkoutLink": "https://checkout.nomba.com/pay/ord_123",
+    "orderReference": "nombasub_A1b2C3d4E5f6G7h8I9j0K1l2"
+  }
+}
+```
+
+## Related webhook events
+
+- `payment_method.attached`
+- `invoice.paid`
+- `subscription.created`
+- `payment_success`
+
+## Validation errors
+
+```json
+{
+  "status": "error",
+  "message": "Plan not found",
+  "data": null
+}
+```
+
+```json
+{
+  "status": "error",
+  "message": "Plan is not active",
+  "data": null
+}
+```

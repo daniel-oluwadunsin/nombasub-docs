@@ -1,11 +1,11 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "name": "Nomba Subscriptions Engine",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#EAB308",
+    "light": "#FACC15",
+    "dark": "#FDE047"
   },
   "favicon": "/favicon.svg",
   "navigation": {
@@ -18,20 +18,81 @@
         ]
       }
     ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+    "groups": [
+      {
+        "group": "Overview",
+        "icon": "book-open",
+        "expanded": true,
+        "pages": [
+          "index",
+          "quickstart",
+          "authentication",
+          "environments"
+        ]
+      },
+      {
+        "group": "Core Concepts",
+        "icon": "layers",
+        "pages": [
+          "core-concepts/how-the-engine-works",
+          "core-concepts/tenants",
+          "core-concepts/plans",
+          "core-concepts/customers",
+          "core-concepts/subscriptions",
+          "core-concepts/invoices",
+          "core-concepts/payment-sources",
+          "core-concepts/subscription-states",
+          "core-concepts/invoice-states"
+        ]
+      },
+      {
+        "group": "Guides",
+        "icon": "route",
+        "pages": [
+          "guides/card-backed-subscription",
+          "guides/charge-tokenized-card",
+          "guides/handle-nomba-webhooks",
+          "guides/configure-merchant-webhooks",
+          "guides/subaccounts-and-settlement",
+          "guides/test-billing-flow",
+          "guides/nomba-integration",
+          "guides/webhook-events"
+        ]
+      },
+      {
+        "group": "API Reference",
+        "icon": "braces",
+        "pages": [
+          "api-reference/auth",
+          "api-reference/plans",
+          "api-reference/customers",
+          "api-reference/subscriptions",
+          "api-reference/checkout",
+          "api-reference/webhook-endpoints"
+        ]
+      },
+      {
+        "group": "Operations",
+        "icon": "shield-check",
+        "pages": [
+          "operations/error-handling",
+          "operations/pagination-filtering",
+          "operations/webhook-security",
+          "operations/sandbox-testing",
+          "operations/production-checklist"
+        ]
+      },
+      {
+        "group": "Internals",
+        "icon": "database",
+        "pages": [
+          "internals/data-model",
+          "internals/billing-lifecycle",
+          "internals/nomba-processing",
+          "internals/webhook-delivery"
+        ]
+      }
+    ]
   },
   "logo": {
     "light": "/logo/light.svg",
@@ -40,15 +101,10 @@
   "navbar": {
     "links": [
       {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "/api-reference/plans",
+        "label": "API Reference"
       }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://app.mintlify.com"
-    }
+    ]
   },
   "contextual": {
     "options": [
@@ -64,9 +120,11 @@
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
     }
+  },
+  "description": "Developer documentation for integrating Nomba Subscriptions Engine: plans, customers, subscriptions, checkout, tokenized cards, invoices, and webhooks.",
+  "appearance": {
+    "default": "system",
+    "strict": false
   }
 }

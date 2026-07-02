@@ -1,0 +1,60 @@
+---
+title: "Authentication"
+description: "Authenticate server-side requests with tenant API keys."
+---
+
+# Authentication
+
+## In a nutshell
+
+API keys identify your business in the Subscriptions Engine. They are not Nomba credentials and should only be used from trusted server-side environments.
+
+## API key header
+
+Protected endpoints require this header:
+
+```bash
+X-Api-Key: sub_xxx
+```
+
+Example:
+
+```bash
+curl https://api.example.com/v1/plan/ \
+  -H "X-Api-Key: sub_xxx"
+```
+
+## Get an API key
+
+Register your business:
+
+```bash
+curl -X POST https://api.example.com/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "businessName": "Acme SaaS",
+    "accountId": "nomba_account_or_subaccount_id"
+  }'
+```
+
+Or retrieve an existing key by account ID:
+
+```bash
+curl -X POST https://api.example.com/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "accountId": "nomba_account_or_subaccount_id"
+  }'
+```
+
+## Security rules
+
+- Keep API keys on your backend only.
+- Never expose keys in frontend JavaScript, mobile binaries, or public repositories.
+- Use HTTPS for all API calls and webhook endpoints.
+- Rotate keys if they are leaked.
+- The MCP server, when available, uses the same Subscriptions Engine API key model.
+
+## Not currently available
+
+API key scopes, test/live key prefixes, and key revocation endpoints are not currently exposed.

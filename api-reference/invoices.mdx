@@ -1,0 +1,31 @@
+---
+title: "Invoices"
+description: "Invoice API availability and recommended future endpoints."
+---
+
+# Invoices API
+
+## Not currently exposed
+
+Invoices are created and updated as part of the subscription billing lifecycle, but public invoice endpoints are not currently available.
+
+## Current integration pattern
+
+Use merchant webhooks to react to invoice events:
+
+- `invoice.upcoming`
+- `invoice.created`
+- `invoice.payment_attempted`
+- `invoice.paid`
+- `invoice.payment_failed`
+- `invoice.marked_uncollectible`
+
+## Recommended future endpoints
+
+```txt
+GET /v1/invoices
+GET /v1/invoices/:invoiceCode
+POST /v1/invoices/:invoiceCode/retry
+```
+
+These endpoints should only be documented as available after they are exposed by the API.

@@ -1,0 +1,41 @@
+---
+title: "Test the Billing Flow"
+description: "Run the MVP billing flow locally or in a sandbox-like environment."
+---
+
+# Test the Billing Flow
+
+## In a nutshell
+
+Before going live, test the complete customer journey from plan creation to checkout payment and webhook handling.
+
+## Test flow
+
+1. Create or obtain a tenant API key.
+2. Create a plan.
+3. Create a customer.
+4. Initialize checkout for the plan and customer.
+5. Complete checkout using test payment details provided for your environment.
+6. Receive merchant webhook events.
+7. Confirm your app grants access after `invoice.paid` or `payment_success`.
+8. Confirm your app handles `invoice.payment_failed` and `subscription.paused`.
+
+## Recommended assertions
+
+| Step | What to check |
+| --- | --- |
+| Plan creation | Plan has the expected amount, interval, and currency. |
+| Customer creation | Customer email and external reference match your system. |
+| Checkout | Checkout link is returned and redirects correctly. |
+| Payment success | Your webhook endpoint receives a success event. |
+| Subscription | Customer is marked subscribed in your app. |
+| Failure | Failed payment does not grant access. |
+
+## Webhook events to test
+
+- `payment_method.attached`
+- `invoice.paid`
+- `invoice.payment_failed`
+- `subscription.created`
+- `subscription.paused`
+- `payment_success`

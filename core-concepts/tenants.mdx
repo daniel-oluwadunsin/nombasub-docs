@@ -1,0 +1,45 @@
+---
+title: "Tenants"
+description: "How businesses are represented and authenticated in the engine."
+---
+
+# Tenants
+
+## In a nutshell
+
+A tenant is your business account in the Subscriptions Engine. Your API key identifies the tenant for every protected request.
+
+## Tenant setup
+
+Create a tenant with your business name and account/subaccount identifier:
+
+```bash
+curl -X POST https://api.example.com/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "businessName": "Acme SaaS",
+    "accountId": "nomba_account_or_subaccount_id"
+  }'
+```
+
+The response includes your API key.
+
+## Tenant-owned resources
+
+The following resources belong to a tenant:
+
+- Plans
+- Customers
+- Subscriptions
+- Invoices
+- Payment sources
+- Payment attempts
+- Webhook deliveries
+
+## Account mapping
+
+The `accountId` value maps your business to the Nomba account or subaccount used for payment routing. You do not need to provide Nomba API credentials to call the Subscriptions Engine.
+
+## Security
+
+Keep your API key secret. All `/v1` API calls should be made from your backend with `X-Api-Key`.

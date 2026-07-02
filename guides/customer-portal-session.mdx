@@ -1,0 +1,51 @@
+---
+title: "Create a Customer Portal Session"
+description: "Planned customer portal session flow for hosted billing management."
+---
+
+# Create a Customer Portal Session
+
+## Planned
+
+Customer portal sessions are part of the product direction, but no portal model, service, or public endpoint exists in the current codebase.
+
+## Recommended future behavior
+
+A portal session endpoint could let merchants create a short-lived link where customers can:
+
+- View subscription details.
+- Update payment method.
+- View invoices and receipts.
+- Cancel or manage renewal preferences if supported.
+
+Recommended endpoint shape:
+
+```txt
+POST /v1/portal/sessions
+```
+
+Recommended request:
+
+```json
+{
+  "customerCode": "CUST_9XyZ456q",
+  "returnUrl": "https://merchant.example.com/account/billing"
+}
+```
+
+Recommended response:
+
+```json
+{
+  "status": "success",
+  "message": "Portal session created successfully",
+  "data": {
+    "url": "https://billing.example.com/portal/session_123",
+    "expiresAt": "2026-07-02T11:20:00Z"
+  }
+}
+```
+
+<Warning>
+  Do not document this as implemented until the endpoint exists.
+</Warning>

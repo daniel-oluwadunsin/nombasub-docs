@@ -1,0 +1,60 @@
+---
+title: "Configure Merchant Webhooks"
+description: "Receive normalized subscription and invoice events from the engine."
+---
+
+# Configure Merchant Webhooks
+
+## In a nutshell
+
+Merchant webhooks notify your backend when subscription, invoice, payment, and payment-method events happen.
+
+## Configure your endpoint
+
+Use the webhook URL setup route when enabled for your workspace:
+
+```bash
+curl -X POST https://api.example.com/auth/set-webhook-url \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_xxx" \
+  -d '{"webhookUrl":"https://merchant.example.com/webhooks/nombasub"}'
+```
+
+<Note>
+  If webhook endpoint management is not enabled in your deployment, ask the platform team to configure your webhook URL and signing secret.
+</Note>
+
+## Payload shape
+
+```json
+{
+  "id": "evt_123",
+  "eventType": "invoice.paid",
+  "tenantId": "tenant_123",
+  "data": {
+    "code": "INV_z9y8x7w6",
+    "status": "paid",
+    "amountDue": 500000,
+    "amountPaid": 500000,
+    "currency": "NGN"
+  },
+  "createdAt": "2026-07-02T10:20:00Z"
+}
+```
+
+## Headers
+
+| Header | Description |
+| --- | --- |
+| `x-nombasub-event` | Event type. |
+| `x-nombasub-webhook-id` | Webhook delivery ID. |
+| `x-nombasub-tenant-id` | Tenant ID. |
+| `x-nombasub-timestamp` | Timestamp. |
+| `x-nombasub-signature` | Signature when signing is configured. |
+
+## Handling guidance
+
+- Return a 2xx response quickly.
+- Verify signatures when available.
+- Process events asynchronously.
+- Make handlers idempotent by webhook ID.

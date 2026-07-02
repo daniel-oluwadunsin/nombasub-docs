@@ -1,0 +1,42 @@
+---
+title: "Nomba Integration"
+description: "How the engine uses Nomba internally for checkout, tokenized cards, and webhooks."
+---
+
+# Nomba Integration
+
+## In a nutshell
+
+The Subscriptions Engine is powered by Nomba payment primitives, but you integrate with the Subscriptions Engine API. You do not need to bring your own Nomba credentials.
+
+## What the engine handles
+
+- Creates checkout sessions for first subscription payments.
+- Enables card tokenization during checkout.
+- Saves reusable tokenized card references.
+- Charges tokenized cards for future subscription renewals.
+- Receives payment confirmations.
+- Updates invoice and subscription state.
+- Sends normalized webhooks to your application.
+
+## Your integration surface
+
+As a merchant, you call:
+
+- `POST /v1/plan/`
+- `POST /v1/customer/`
+- `POST /v1/checkout/order`
+- `POST /v1/subscription/`
+- `GET /v1/subscription/:idOrCode`
+
+You receive merchant webhook events such as:
+
+- `invoice.paid`
+- `invoice.payment_failed`
+- `subscription.created`
+- `subscription.paused`
+- `payment_success`
+
+## Why this matters
+
+You get Nomba-powered payment collection while working with subscription-native objects like plans, customers, subscriptions, invoices, and payment sources.

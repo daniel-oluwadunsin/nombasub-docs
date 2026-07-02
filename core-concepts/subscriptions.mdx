@@ -1,0 +1,47 @@
+---
+title: "Subscriptions"
+description: "Manage recurring billing relationships between customers and plans."
+---
+
+# Subscriptions
+
+## In a nutshell
+
+A subscription connects a customer to a plan and tracks when the customer should be billed next.
+
+## What a subscription tracks
+
+| Field | Description |
+| --- | --- |
+| `code` | Public subscription code, such as `SUB_a1b2c3d4`. |
+| `customerId` | Customer being billed. |
+| `planId` | Plan used for billing. |
+| `paymentSourceId` | Saved payment source, when available. |
+| `amount` | Subscription amount in minor units. |
+| `currency` | Subscription currency. |
+| `interval` | Billing interval. |
+| `trialStartDate` | Trial start date, if the plan has a trial. |
+| `trialEndDate` | Trial end date, if the plan has a trial. |
+| `currentBillingCycleStart` | Current billing period start. |
+| `currentBillingCycleEnd` | Current billing period end. |
+| `status` | Subscription lifecycle status. |
+
+## Subscription creation
+
+You can create a subscription for an existing customer and plan:
+
+```bash
+curl -X POST https://api.example.com/v1/subscription/ \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_xxx" \
+  -d '{
+    "customerEmailOrCode": "customer@example.com",
+    "planCode": "PLN_8AbC123x"
+  }'
+```
+
+If the customer already has an active card token saved, the engine can use it for future billing. If no payment source exists, use checkout to collect and tokenize the first card payment.
+
+## API
+
+See [Subscriptions API Reference](/api-reference/subscriptions).

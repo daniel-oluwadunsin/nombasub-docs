@@ -1,0 +1,49 @@
+---
+title: "Pagination and Filtering"
+description: "Use page-based pagination and available filters."
+---
+
+# Pagination and Filtering
+
+## In a nutshell
+
+List endpoints use page-based pagination.
+
+## Query parameters
+
+| Parameter | Description |
+| --- | --- |
+| `page` | Page number. Defaults to `1`. |
+| `limit` | Page size. Defaults to `10`. |
+| `search` | Accepted by common pagination shape; availability depends on endpoint. |
+
+## Paginated response
+
+```json
+{
+  "status": "success",
+  "message": "Customers retrieved successfully",
+  "data": {
+    "data": [],
+    "totalCount": 0,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 0,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  }
+}
+```
+
+## Endpoint filters
+
+Plans support:
+
+- `status`
+- `interval`
+- `amount`
+
+Subscriptions support:
+
+- `customer`
+- `plan`

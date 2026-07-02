@@ -1,0 +1,39 @@
+---
+title: "Production Checklist"
+description: "Prepare your subscription integration for live billing."
+---
+
+# Production Checklist
+
+## Before going live
+
+- Store your Subscriptions Engine API key securely.
+- Never expose API keys in frontend code.
+- Use HTTPS for all API calls and webhook URLs.
+- Configure your merchant webhook endpoint.
+- Verify webhook signatures when signing is configured.
+- Make webhook handlers idempotent.
+- Never store full card details.
+- Reconcile invoice and payment webhook events in your system.
+- Monitor failed payments and paused subscriptions.
+- Test plan creation, customer creation, checkout, payment success, and payment failure.
+- Confirm settlement/account mapping with the platform team.
+
+## Operational monitoring
+
+Track:
+
+- Checkout creation failures.
+- Payment failures.
+- Webhook delivery failures.
+- Customers with paused subscriptions.
+- Revenue by plan in your own reporting system.
+
+## Webhook readiness
+
+Before live traffic, make sure your webhook endpoint:
+
+- Returns 2xx quickly.
+- Handles duplicate webhook IDs safely.
+- Logs event type, webhook ID, tenant ID, and timestamp.
+- Does not block customer access updates on slow downstream jobs.

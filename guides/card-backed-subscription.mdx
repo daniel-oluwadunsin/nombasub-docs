@@ -1,0 +1,53 @@
+---
+title: "Create a Card-backed Subscription"
+description: "Create a plan, customer, checkout order, tokenized card, and recurring subscription flow."
+---
+
+# Create a Card-backed Subscription
+
+## In a nutshell
+
+A card-backed subscription starts with hosted checkout. The first payment tokenizes the customer's card, and future renewals use the saved tokenized card reference.
+
+## Flow
+
+```txt
+Create plan -> Create customer -> Initialize checkout -> Customer pays -> Card token is saved -> Invoice is paid -> Subscription remains active
+```
+
+## 1. Create a plan
+
+```bash
+curl -X POST https://api.example.com/v1/plan/ \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_xxx" \
+  -d '{"name":"Growth Monthly","amount":500000,"currency":"NGN","interval":"monthly","trialPeriodDays":0}'
+```
+
+## 2. Create a customer
+
+```bash
+curl -X POST https://api.example.com/v1/customer/ \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_xxx" \
+  -d '{"email":"customer@example.com","name":"Ada Lovelace"}'
+```
+
+## 3. Initialize checkout
+
+```bash
+curl -X POST https://api.example.com/v1/checkout/order \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_xxx" \
+  -d '{"planCode":"PLN_8AbC123x","order":{"callbackUrl":"https://merchant.example.com/callback","customerEmail":"customer@example.com","amount":0,"currency":"NGN","orderReference":"merchant_order_123"}}'
+```
+
+The engine uses the plan's amount and currency, enables card tokenization, and returns a checkout link.
+
+## 4. Listen for webhooks
+
+After payment, listen for events such as `payment_method.attached`, `invoice.paid`, `subscription.created`, and `payment_success`.
+
+## Subscription status
+
+The current public status for an active subscription is `active`. Trial dates are represented with `trialStartDate` and `trialEndDate`.

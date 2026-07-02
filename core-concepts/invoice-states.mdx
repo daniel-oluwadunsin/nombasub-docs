@@ -1,0 +1,37 @@
+---
+title: "Invoice States"
+description: "Implemented invoice statuses and billing lifecycle transitions."
+---
+
+# Invoice States
+
+## In a nutshell
+
+Invoice status tracks where an invoice is in the collection lifecycle.
+
+## Invoice statuses
+
+| Status | Meaning |
+| --- | --- |
+| `draft` | Prepared before the due date. |
+| `open` | Due and ready for collection. |
+| `paid` | Fully paid. |
+| `failed` | Payment failed. |
+| `refunded` | Reserved for refund workflows. |
+
+## Payment attempt statuses
+
+| Status | Meaning |
+| --- | --- |
+| `PENDING_BILLING` | A payment attempt has been created. |
+| `SUCCESS` | Payment succeeded. |
+| `PAYMENT_FAILED` | Payment failed. |
+| `REFUND` | Reserved for refund workflows. |
+| `CANCELLED` | Reserved for cancelled attempts. |
+
+## Lifecycle
+
+```txt
+draft -> open -> paid
+open -> failed
+```

@@ -3,45 +3,94 @@ title: "Quickstart"
 description: "Begin with a guide on the fastest path to a successful outcome"
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
+# Quickstart
 
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
+## In a nutshell
 
-## Prerequisites
+This guide shows the shortest path to a card-backed subscription: create a tenant API key, create a plan, create a customer, and initialize a Nomba Checkout order with card tokenization enabled.
 
-Before you begin, you must have:
+## 1. Get an API key
 
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
+Create a tenant and store the returned key securely on your server.
 
-## Get started
+```bash
+curl -X POST https://api.example.com/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "businessName": "Acme SaaS",
+    "accountId": "nomba_account_or_subaccount_id"
+  }'
+```
 
-<Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
+Response:
 
-    ```bash
-    npm install your-package
-    ```
-  </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
+```json
+{
+  "status": "success",
+  "message": "Tenant registered successfully",
+  "data": {
+    "apiKey": "sub_xxx"
+  }
+}
+```
 
-    ```bash
-    your-cli init
-    ```
-  </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
+## 2. Create a plan
 
-    ```bash
-    your-cli start
-    ```
-  </Step>
-</Steps>
+```bash
+curl -X POST https://api.example.com/v1/plan/ \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_xxx" \
+  -d '{
+    "name": "Growth Monthly",
+    "description": "Monthly subscription for growing teams",
+    "amount": 500000,
+    "currency": "NGN",
+    "interval": "monthly",
+    "intervalCount": 1,
+    "trialPeriodDays": 0
+  }'
+```
 
-<Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
+## 3. Create a customer
 
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
-</Tip>
+```bash
+curl -X POST https://api.example.com/v1/customer/ \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_xxx" \
+  -d '{
+    "email": "customer@example.com",
+    "name": "Ada Lovelace",
+    "phoneNumber": "+2348012345678",
+    "externalRef": "user_123"
+  }'
+```
+
+## 4. Initialize checkout
+
+```bash
+curl -X POST https://api.example.com/v1/checkout/order \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_xxx" \
+  -d '{
+    "planCode": "PLN_8AbC123x",
+    "order": {
+      "callbackUrl": "https://merchant.example.com/callback",
+      "customerEmail": "customer@example.com",
+      "amount": 0,
+      "currency": "NGN",
+      "orderReference": "merchant_order_123"
+    }
+  }'
+```
+
+The engine uses the selected plan amount and currency, enables card tokenization, and returns a checkout link.
+
+## 5. Complete payment
+
+Redirect the customer to the checkout link. After payment, the engine stores the reusable Nomba card token, updates billing records, and sends merchant webhooks when configured.
+
+## Next steps
+
+- Read [Create a Card-backed Subscription](/guides/card-backed-subscription).
+- Configure [Merchant Webhooks](/guides/configure-merchant-webhooks).
+- Review [Production Checklist](/operations/production-checklist).

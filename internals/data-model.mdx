@@ -1,0 +1,57 @@
+---
+title: "Data Model"
+description: "Internal tables and domain objects used by the billing engine."
+---
+
+# Data Model
+
+## In a nutshell
+
+This page documents the internal tables and model relationships used by the billing engine. Use this section for implementation, demo, and handoff context.
+
+## Tables
+
+| Table | Model | Purpose |
+| --- | --- | --- |
+| `tenants` | Tenant | Business account, API key, webhook URL, Nomba account mapping. |
+| `plans` | Plan | Current plan definition used for new subscriptions. |
+| `plan_versions` | PlanVersion | Versioned plan snapshots used by subscriptions. |
+| `customers` | Customer | Merchant end customer. |
+| `subscriptions` | Subscription | Recurring billing relationship between customer and plan. |
+| `payment_sources` | PaymentSource | Saved card token or bank mandate reference. |
+| `invoices` | Invoice | Amount due for a billing cycle. |
+| `payment_intents` | PaymentIntent | Attempt to collect payment for a subscription/invoice. |
+| `webhook_deliveries` | WebhookDelivery | Outgoing merchant webhook delivery record. |
+| `webhook_delivery_attempts` | WebhookDeliveryAttempt | Individual webhook delivery attempt result. |
+| `nomba_webhook_events` | NombaWebhookEvent | Incoming provider webhook event log model. |
+| `nomba_initiations` | NombaInitiation | Nomba checkout/charge initiation and metadata mapping. |
+| `settlements` | Settlement | Pending/completed/failed settlement record. |
+| `email_deliveries` | EmailDelivery | Queued customer lifecycle emails. |
+
+## Code prefixes
+
+| Object | Generated code prefix |
+| --- | --- |
+| Plan | `PLN_` |
+| Customer | `CUST_` |
+| Subscription | `SUB_` |
+| Invoice | `INV_` |
+| Payment intent | `PAY_` |
+
+## Core relationships
+
+```txt
+Tenant
+  -> Plans
+  -> Customers
+       -> PaymentSources
+       -> Subscriptions
+            -> Invoices
+            -> PaymentIntents
+  -> WebhookDeliveries
+  -> EmailDeliveries
+```
+
+## Hidden tenant fields
+
+Most resource JSON responses omit `tenantId` because the API resolves tenant ownership from the API key. Internal records still store tenant IDs for isolation.
