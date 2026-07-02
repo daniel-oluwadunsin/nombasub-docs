@@ -1,0 +1,47 @@
+---
+title: "Subscriptions"
+description: "Create and retrieve customer subscriptions."
+---
+
+# Subscriptions API
+
+All endpoints require `X-Api-Key`.
+
+## POST /v1/subscription/
+
+Create a subscription for a customer and plan.
+
+```bash
+curl -X POST https://api.example.com/v1/subscription/ \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_xxx" \
+  -d '{"customerEmailOrCode":"customer@example.com","planCode":"PLN_8AbC123x"}'
+```
+
+Optional payment fields:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `cardToken` | string | Existing saved card token reference. |
+| `mandateId` | string | Reserved for bank mandate flows; not part of the card subscription guide. |
+
+## GET /v1/subscription/
+
+List subscriptions.
+
+Query parameters:
+
+| Parameter | Description |
+| --- | --- |
+| `page` | Page number. |
+| `limit` | Page size. |
+| `customer` | Filter by customer ID, code, email, or external reference. |
+| `plan` | Filter by plan ID or code. |
+
+## GET /v1/subscription/:idOrCode
+
+Retrieve a subscription by ID or code.
+
+## Not currently exposed
+
+Cancel, pause, resume, change-plan, and retry-payment endpoints are not currently available as public endpoints.

@@ -1,0 +1,34 @@
+---
+title: "Sandbox Testing"
+description: "Recommended test flow for subscription billing integrations."
+---
+
+# Sandbox Testing
+
+## In a nutshell
+
+Use a demo or sandbox workspace to test your billing flow before accepting production payments.
+
+## Test checklist
+
+1. Create a tenant and store the API key.
+2. Create a plan.
+3. Create a customer.
+4. Initialize checkout for the plan and customer email.
+5. Complete checkout with test payment details provided by the platform team.
+6. Confirm your webhook endpoint receives billing events.
+7. Confirm your system marks the customer as subscribed.
+8. Test failed payment behavior where supported.
+
+## Events to verify
+
+- `payment_method.attached`
+- `invoice.paid`
+- `invoice.payment_failed`
+- `subscription.created`
+- `subscription.paused`
+- `payment_success`
+
+## MCP testing
+
+MCP tooling is planned. Do not include MCP checks in production readiness until the MCP server is available for your workspace.

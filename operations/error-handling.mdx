@@ -1,0 +1,41 @@
+---
+title: "Error Handling"
+description: "Understand API error responses and recommended handling."
+---
+
+# Error Handling
+
+## In a nutshell
+
+API errors use the same top-level response envelope as successful responses, with `status` set to `error`.
+
+## Current error shape
+
+```json
+{
+  "status": "error",
+  "message": "Invalid api key",
+  "data": null
+}
+```
+
+## Common status codes
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid request body or query parameters. |
+| `401` | Missing or invalid API key. |
+| `404` | Resource not found. |
+| `409` | Conflict, such as duplicate tenant or customer. |
+| `500` | Unexpected server error. |
+
+## Recommended handling
+
+- Treat non-2xx responses as failed requests.
+- Show validation messages in your dashboard or logs.
+- Retry only safe network failures.
+- Do not retry payment failures blindly.
+
+## Recommended future shape
+
+A future error shape may include `code`, `request_id`, and structured `details` fields.

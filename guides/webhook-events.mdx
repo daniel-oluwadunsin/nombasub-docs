@@ -1,0 +1,48 @@
+---
+title: "Webhook Events"
+description: "Normalized merchant webhook events sent by the Subscriptions Engine."
+---
+
+# Webhook Events
+
+## In a nutshell
+
+Webhook events tell your backend when billing state changes. Use them to provision access, update customer records, reconcile invoices, and notify your users.
+
+## Events
+
+| Event | Meaning |
+| --- | --- |
+| `payment_method.attached` | A reusable payment method was saved. |
+| `invoice.upcoming` | An upcoming invoice was prepared. |
+| `invoice.created` | An invoice was opened for collection. |
+| `invoice.payment_attempted` | The engine attempted payment. |
+| `invoice.paid` | The invoice was paid. |
+| `invoice.payment_failed` | Payment for the invoice failed. |
+| `invoice.marked_uncollectible` | Invoice could not be collected. |
+| `checkout.created` | Checkout was created for a subscription invoice. |
+| `payment_success` | Payment succeeded. |
+| `subscription.created` | A subscription was created. |
+| `subscription.paused` | Subscription was paused, usually after payment failure. |
+| `subscription.card_expiring` | Saved card is nearing expiry. |
+| `subscription.trial_ending_soon` | Trial ends soon. |
+| `subscription.billing_started` | Paid billing started after trial. |
+
+## Example payload
+
+```json
+{
+  "id": "evt_123",
+  "eventType": "invoice.paid",
+  "tenantId": "tenant_123",
+  "data": {
+    "code": "INV_z9y8x7w6",
+    "status": "paid",
+    "amountDue": 500000,
+    "amountPaid": 500000,
+    "amountRemaining": 0,
+    "currency": "NGN"
+  },
+  "createdAt": "2026-07-02T10:20:00Z"
+}
+```

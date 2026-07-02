@@ -1,0 +1,28 @@
+---
+title: "Payment Sources"
+description: "Payment source API availability and tokenized card behavior."
+---
+
+# Payment Sources API
+
+## Not currently exposed
+
+Payment sources are created from successful tokenized checkout payments. Public endpoints to list, update, or remove payment sources are not currently available.
+
+## Current integration pattern
+
+Use checkout to collect the first card payment. After a successful payment, the engine stores the reusable card token and can use it for future renewals.
+
+## Related events
+
+- `payment_method.attached`
+- `payment_method.updated`
+- `payment_method.detached`
+- `subscription.card_expiring`
+
+## Recommended future endpoints
+
+```txt
+GET /v1/payment-sources
+POST /v1/payment-sources/:paymentSourceCode/archive
+```

@@ -1,0 +1,40 @@
+---
+title: "Payment Sources"
+description: "Store reusable card token references for recurring billing."
+---
+
+# Payment Sources
+
+## In a nutshell
+
+Payment sources let the engine charge future subscription renewals without asking the customer to enter card details every billing cycle.
+
+## Card payment sources
+
+The card flow works like this:
+
+1. The customer pays through Nomba Checkout.
+2. Checkout tokenization returns a reusable `tokenKey`.
+3. The engine stores the token as a card payment source.
+4. Future renewals charge the saved token.
+
+## Card metadata
+
+A saved card payment source can include:
+
+| Field | Description |
+| --- | --- |
+| `last4Digits` | Last four card digits. |
+| `type` | Card type. |
+| `currency` | Card currency. |
+| `expiryMonth` | Expiry month. |
+| `expiryYear` | Expiry year. |
+| `authorizationToken` | Nomba token key used for future charges. |
+
+<Warning>
+  Never collect or store full card details in your application. Use hosted checkout and tokenized card references.
+</Warning>
+
+## API availability
+
+Payment sources are created from successful tokenized checkout payments. Public payment source management endpoints are not currently exposed.

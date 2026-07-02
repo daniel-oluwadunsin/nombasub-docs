@@ -1,0 +1,39 @@
+---
+title: "Invoices"
+description: "Understand invoice creation, payment attempts, and billing cycle records."
+---
+
+# Invoices
+
+## In a nutshell
+
+Subscriptions decide when money is due. Invoices record what is due. Payment attempts try to collect it. Webhooks notify your system when invoice and payment states change.
+
+## Invoice lifecycle
+
+```txt
+Billing cycle is due
+  -> Invoice is created or opened
+  -> Payment is attempted
+  -> Nomba Checkout or tokenized card charge runs
+  -> Invoice becomes paid or failed
+  -> Webhook is sent to your system
+```
+
+## Invoice statuses
+
+| Status | Meaning |
+| --- | --- |
+| `draft` | Invoice has been prepared before the due date. |
+| `open` | Invoice is due and ready for payment. |
+| `paid` | Invoice has been fully paid. |
+| `failed` | Payment failed or the invoice could not be collected. |
+| `refunded` | Refund state reserved for refund workflows. |
+
+## Payment attempts
+
+Each collection attempt is represented as a payment attempt. Successful attempts settle the invoice; failed attempts can pause the subscription.
+
+## API availability
+
+Invoice records are part of the billing lifecycle, but public invoice management endpoints are not currently exposed. See [Invoices API Reference](/api-reference/invoices) for current availability.

@@ -1,0 +1,34 @@
+---
+title: "Webhook Endpoints"
+description: "Configure merchant webhook delivery."
+---
+
+# Webhook Endpoints API
+
+## Available setup route
+
+A webhook URL setup route is available in some deployments:
+
+```txt
+POST /auth/set-webhook-url
+```
+
+```bash
+curl -X POST https://api.example.com/auth/set-webhook-url \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_xxx" \
+  -d '{"webhookUrl":"https://merchant.example.com/webhooks/nombasub"}'
+```
+
+## Not currently exposed
+
+Full webhook endpoint management is not currently available as public API.
+
+Recommended future endpoints:
+
+```txt
+POST /v1/webhook-endpoints
+GET /v1/webhook-endpoints
+DELETE /v1/webhook-endpoints/:endpointCode
+POST /v1/webhook-deliveries/:deliveryId/replay
+```

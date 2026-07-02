@@ -1,0 +1,27 @@
+---
+title: "Payment Attempts"
+description: "Payment attempt API availability and webhook-based integration."
+---
+
+# Payment Attempts API
+
+## Not currently exposed
+
+Payment attempts are created during checkout and recurring tokenized-card charges, but public payment attempt endpoints are not currently available.
+
+## Statuses you may see in webhook data
+
+| Status | Meaning |
+| --- | --- |
+| `PENDING_BILLING` | Payment attempt created. |
+| `SUCCESS` | Payment succeeded. |
+| `PAYMENT_FAILED` | Payment failed. |
+| `REFUND` | Reserved for refund flows. |
+| `CANCELLED` | Reserved for cancelled attempts. |
+
+## Recommended future endpoints
+
+```txt
+GET /v1/payment-attempts
+GET /v1/payment-attempts/:paymentCode
+```

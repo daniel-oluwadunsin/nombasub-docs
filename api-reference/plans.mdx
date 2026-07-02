@@ -1,0 +1,77 @@
+---
+title: "Plans"
+description: "Create, list, retrieve, and update subscription plans."
+---
+
+# Plans API
+
+All endpoints require `X-Api-Key`.
+
+## POST /v1/plan/
+
+Create a plan and initial plan version.
+
+```bash
+curl -X POST https://api.example.com/v1/plan/ \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_test_xxx" \
+  -d '{
+    "name":"Growth Monthly",
+    "description":"Monthly subscription for growing teams",
+    "amount":500000,
+    "interval":"monthly",
+    "intervalCount":1,
+    "trialPeriodDays":14,
+    "currency":"NGN"
+  }'
+```
+
+### Request body
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | string | Yes | Plan name. |
+| `description` | string | No | Plan description. |
+| `amount` | integer | Yes | Amount in minor units. |
+| `interval` | enum | Yes | `daily`, `weekly`, `bi-weekly`, `monthly`, `quarterly`, `yearly`. |
+| `intervalCount` | integer | No | Interval multiplier. |
+| `trialPeriodDays` | integer | No | Trial length in days. |
+| `invoiceLimit` | integer | No | Optional invoice limit. |
+| `currency` | string | Yes | `NGN`. |
+
+## GET /v1/plan/
+
+List plans.
+
+Query parameters: `page`, `limit`, `search`, `status`, `interval`, `amount`.
+
+```bash
+curl "https://api.example.com/v1/plan/?page=1&limit=10&status=active" \
+  -H "X-Api-Key: sub_test_xxx"
+```
+
+## GET /v1/plan/:planCode
+
+Retrieve a plan by code.
+
+```bash
+curl https://api.example.com/v1/plan/PLN_8AbC123x \
+  -H "X-Api-Key: sub_test_xxx"
+```
+
+## PUT /v1/plan/:planCode
+
+Update a plan and create a new plan version.
+
+```bash
+curl -X PUT https://api.example.com/v1/plan/PLN_8AbC123x \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_test_xxx" \
+  -d '{
+    "amount": 750000,
+    "status": "active",
+    "updateExistingSubscriptions": true
+  }'
+```
+
+Possible errors: validation errors, `404 Plan not found`, provider-independent `500` errors.

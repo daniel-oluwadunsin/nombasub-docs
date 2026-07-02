@@ -1,0 +1,37 @@
+---
+title: "Use Subaccounts and Split Settlement"
+description: "How tenant account IDs and payment metadata support merchant revenue routing."
+---
+
+# Use Subaccounts and Split Settlement
+
+## In a nutshell
+
+The Subscriptions Engine uses tenant account mapping so subscription payments can be associated with the right business. You do not need to build a wallet or balance system to integrate the billing API.
+
+## Payment model
+
+```txt
+Customer pays
+  -> Engine creates checkout or tokenized-card charge
+  -> Tenant account information maps payment to your business
+  -> Platform fee is tracked by the platform
+  -> Invoice and payment state are updated
+  -> Your webhook endpoint receives billing events
+```
+
+## What you provide
+
+When your tenant is created, your business is associated with an account or subaccount identifier. The engine uses that mapping when creating Nomba-powered payment requests.
+
+## What webhooks tell you
+
+Use invoice and payment webhooks to reconcile revenue in your own system:
+
+- `invoice.paid`
+- `invoice.payment_failed`
+- `payment_success`
+
+## Not exposed as public API
+
+Balance, payout, and settlement-reporting endpoints are not currently available in the public API.

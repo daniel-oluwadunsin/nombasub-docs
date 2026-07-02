@@ -1,0 +1,47 @@
+---
+title: "Customers"
+description: "Create, list, retrieve, and update customers."
+---
+
+# Customers API
+
+All endpoints require `X-Api-Key`.
+
+## POST /v1/customer/
+
+Create a customer.
+
+```bash
+curl -X POST https://api.example.com/v1/customer/ \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_xxx" \
+  -d '{"email":"customer@example.com","name":"Ada Lovelace","phoneNumber":"+2348012345678","externalRef":"user_123"}'
+```
+
+| Field | Type | Required |
+| --- | --- | --- |
+| `email` | string | Yes |
+| `name` | string | No |
+| `phoneNumber` | string | No |
+| `externalRef` | string | No |
+
+## GET /v1/customer/
+
+List customers.
+
+Query parameters: `page`, `limit`, `search`.
+
+## GET /v1/customer/:emailOrCode
+
+Retrieve a customer by email or customer code.
+
+## PUT /v1/customer/:emailOrCode
+
+Update `name`, `phoneNumber`, or `externalRef`.
+
+```bash
+curl -X PUT https://api.example.com/v1/customer/customer@example.com \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_xxx" \
+  -d '{"name":"Ada L."}'
+```

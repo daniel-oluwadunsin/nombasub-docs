@@ -1,0 +1,45 @@
+---
+title: "Customers"
+description: "Represent the end users being billed by a tenant."
+---
+
+# Customers
+
+## In a nutshell
+
+Customers are the end users or businesses you bill through subscriptions. A customer can have subscriptions, saved payment sources, and payment history.
+
+## Customer fields
+
+| Field | Description |
+| --- | --- |
+| `code` | Public customer code, such as `CUST_9XyZ456q`. |
+| `email` | Required customer email. |
+| `name` | Optional customer name. |
+| `phoneNumber` | Optional phone number. |
+| `externalRef` | Optional ID from your own system. |
+
+## Create a customer
+
+```bash
+curl -X POST https://api.example.com/v1/customer/ \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_xxx" \
+  -d '{
+    "email": "customer@example.com",
+    "name": "Ada Lovelace",
+    "externalRef": "user_123"
+  }'
+```
+
+## Lookup
+
+Retrieve a customer by email or customer code:
+
+```txt
+GET /v1/customer/:emailOrCode
+```
+
+## API
+
+See [Customers API Reference](/api-reference/customers).

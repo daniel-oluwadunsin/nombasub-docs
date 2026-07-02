@@ -1,0 +1,42 @@
+---
+title: "Checkout"
+description: "Initialize Nomba Checkout for card-backed subscription payments."
+---
+
+# Checkout API
+
+## POST /v1/checkout/order
+
+Initialize checkout for a plan and customer email. Requires `X-Api-Key`.
+
+```bash
+curl -X POST https://api.example.com/v1/checkout/order \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_xxx" \
+  -d '{"planCode":"PLN_8AbC123x","order":{"callbackUrl":"https://merchant.example.com/callback","customerEmail":"customer@example.com","amount":0,"currency":"NGN","orderReference":"merchant_order_123"}}'
+```
+
+## Request body
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `planCode` | string | Yes | Plan code to bill for. |
+| `order.callbackUrl` | string | Yes | Redirect/callback URL for checkout. |
+| `order.customerEmail` | string | Yes | Customer email. |
+| `order.orderReference` | string | No | Your own reference. |
+| `order.orderMetaData` | object | No | Additional metadata. |
+
+<Note>
+  The engine uses the plan amount and currency, restricts checkout to card payments, and enables card tokenization.
+</Note>
+
+## Response
+
+The response data includes Nomba checkout details such as `checkoutLink` and `orderReference`.
+
+## Related webhooks
+
+- `payment_method.attached`
+- `invoice.paid`
+- `subscription.created`
+- `payment_success`

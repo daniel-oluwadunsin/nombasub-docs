@@ -1,0 +1,30 @@
+---
+title: "MCP Overview"
+description: "Planned AI-agent integration for querying and operating billing data."
+---
+
+# MCP Overview
+
+## Planned
+
+The MCP server is planned as an AI-native interface for the Subscriptions Engine. It will let businesses query billing data and perform approved actions from MCP-compatible tools such as Claude Desktop, Cursor, Codex, and other agents.
+
+The MCP server should use your Subscriptions Engine API key, not Nomba credentials.
+
+```bash
+SUBENGINE_API_KEY=sub_xxx
+SUBENGINE_API_URL=https://api.example.com
+```
+
+## Example prompts
+
+- What is my MRR this month?
+- Show me active subscriptions.
+- Show me failed invoices this week.
+- Generate a revenue report for this month.
+- Create a portal link for this customer.
+- Retry this failed invoice.
+
+## Current availability
+
+No public MCP tools are currently exposed. The pages in this section describe the intended tool groups and integration model.

@@ -1,0 +1,43 @@
+---
+title: "How the Engine Works"
+description: "Understand the managed billing architecture and Nomba-powered payment flow."
+---
+
+# How the Engine Works
+
+## In a nutshell
+
+The Subscriptions Engine sits between your application and Nomba. Your app uses one billing API for plans, customers, subscriptions, checkout, tokenized cards, invoices, and webhooks. The engine handles the payment-provider mapping behind the scenes.
+
+## Integration model
+
+```txt
+Your backend
+  -> Subscriptions Engine API
+  -> Nomba-powered payment collection
+  -> Billing state update
+  -> Webhook to your backend
+```
+
+## Core responsibilities
+
+| Area | What the engine handles |
+| --- | --- |
+| Plans | Pricing, billing interval, trials, and plan versions. |
+| Customers | End-customer identity and billing relationships. |
+| Subscriptions | Recurring billing schedule and lifecycle state. |
+| Invoices | Amount due for each billing period. |
+| Payment sources | Reusable tokenized card references. |
+| Webhooks | Normalized billing events sent to your system. |
+
+## Payment collection
+
+The first card payment is completed through Nomba Checkout with tokenization enabled. After payment succeeds, the card token is stored as a reusable payment source. Future billing cycles can be charged automatically using the saved token.
+
+## Merchant webhooks
+
+After billing events occur, the engine sends normalized webhook events such as `invoice.paid`, `invoice.payment_failed`, `subscription.created`, and `subscription.paused` to your configured endpoint.
+
+## Planned surfaces
+
+Some product areas, such as customer portal sessions, analytics endpoints, and MCP tooling, are documented as **Planned** where they are not currently exposed as public APIs.

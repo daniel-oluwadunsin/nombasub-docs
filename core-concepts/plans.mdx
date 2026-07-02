@@ -1,0 +1,42 @@
+---
+title: "Plans"
+description: "Define subscription pricing, intervals, trials, and plan versions."
+---
+
+# Plans
+
+## In a nutshell
+
+Plans define what a customer pays, how often they are billed, and whether billing begins immediately or after a trial.
+
+## Plan fields
+
+| Field | Description |
+| --- | --- |
+| `code` | Public plan code, such as `PLN_8AbC123x`. |
+| `name` | Plan name. |
+| `description` | Optional plan description. |
+| `amount` | Amount in the smallest currency unit. |
+| `currency` | Currently `NGN`. |
+| `interval` | Billing interval. |
+| `intervalCount` | Optional interval multiplier. |
+| `trialPeriodDays` | Optional number of trial days. |
+| `invoiceLimit` | Optional maximum number of invoices. |
+| `status` | `active` or `inactive`. |
+
+## Supported intervals
+
+- `daily`
+- `weekly`
+- `bi-weekly`
+- `monthly`
+- `quarterly`
+- `yearly`
+
+## Plan updates
+
+When you update a plan, new subscriptions use the latest plan values. You can also request that existing subscriptions pick up the new plan version on their next billing cycle by setting `updateExistingSubscriptions` to `true`.
+
+## API
+
+See [Plans API Reference](/api-reference/plans).

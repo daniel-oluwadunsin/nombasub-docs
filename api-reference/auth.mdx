@@ -1,0 +1,51 @@
+---
+title: "Auth"
+description: "Register and log in tenants to obtain API keys."
+---
+
+# Auth API
+
+## POST /auth/register
+
+Creates a tenant and returns an API key.
+
+```bash
+curl -X POST https://api.example.com/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"businessName":"Acme SaaS","accountId":"nomba_account_or_subaccount_id"}'
+```
+
+Response:
+
+```json
+{
+  "status": "success",
+  "message": "Tenant registered successfully",
+  "data": {
+    "apiKey": "sub_xxx"
+  }
+}
+```
+
+## POST /auth/login
+
+Returns the existing API key for a tenant account ID.
+
+```bash
+curl -X POST https://api.example.com/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"accountId":"nomba_account_or_subaccount_id"}'
+```
+
+## POST /auth/set-webhook-url
+
+Configures a merchant webhook URL when enabled for your workspace.
+
+```bash
+curl -X POST https://api.example.com/auth/set-webhook-url \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_xxx" \
+  -d '{"webhookUrl":"https://merchant.example.com/webhooks/nombasub"}'
+```
+
+If this route is not enabled for your workspace, ask the platform team to configure the webhook endpoint.

@@ -1,0 +1,37 @@
+---
+title: "Charge a Tokenized Card"
+description: "How due invoices use saved Nomba card tokens for renewals."
+---
+
+# Charge a Tokenized Card
+
+## In a nutshell
+
+After the first checkout payment saves a Nomba card token, future billing cycles can be collected without asking the customer to enter card details again.
+
+## Renewal flow
+
+```txt
+Invoice due -> Saved card token found -> Payment attempted -> Invoice paid or failed -> Webhook sent
+```
+
+## Success behavior
+
+When a renewal charge succeeds:
+
+- The invoice becomes `paid`.
+- The subscription advances to the next billing cycle.
+- Merchant webhooks such as `invoice.paid` are sent.
+- Customer payment emails may be sent.
+
+## Failure behavior
+
+When a renewal charge fails:
+
+- The invoice becomes `failed`.
+- The subscription becomes `paused`.
+- Merchant webhooks such as `invoice.payment_failed` and `subscription.paused` are sent.
+
+<Warning>
+  Advanced dunning and public retry endpoints are not currently available.
+</Warning>
