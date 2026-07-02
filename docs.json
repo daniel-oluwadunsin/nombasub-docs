@@ -53,7 +53,7 @@
           "guides/configure-merchant-webhooks",
           "guides/test-billing-flow",
           "guides/nomba-integration",
-          "guides/webhook-events"
+          "guides/webhooks"
         ]
       },
       {
