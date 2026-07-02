@@ -1,0 +1,433 @@
+---
+title: "Webhook"
+description: "Normalized merchant webhook events sent by the Subscriptions Engine."
+---
+
+# Webhook
+
+## Always validate webhooks first
+
+Always verify that a webhook came from NombaSub before you process it, update a customer record, mark an invoice as paid, or grant value to a user. Your webhook endpoint is a public URL, so anyone can try to send HTTP requests to it.
+
+NombaSub signs each merchant webhook delivery with the webhook secret configured for your tenant. Validate the signature before trusting the event.
+
+<Warning>
+  Reject webhook requests that are missing required signature headers or whose signature does not match the value you compute on your server.
+</Warning>
+
+## Webhook headers
+
+Every webhook delivery includes headers that identify the event, delivery, tenant, and delivery time. Header names are case insensitive, so normalize header names in your framework before reading them.
+
+```http
+Content-Type: application/json
+x-nombasub-event: invoice.paid
+x-nombasub-webhook-id: 4f91b391-6d86-4394-b1f3-8ff17b18d2e4
+x-nombasub-tenant-id: 7d5dbf4f-4b48-44a4-8be3-bf5a9fefaf3a
+x-nombasub-timestamp: 2026-07-02T10:20:00Z
+x-nombasub-signature: Bt4eJ1oL5GgdlpG8uGg2A8f8j3dWjT6Un1E2C9uF8gQ=
+```
+
+| Header | Description |
+| --- | --- |
+| `x-nombasub-event` | The event type, such as `invoice.paid`, `invoice.payment_failed`, or `subscription.created`. |
+| `x-nombasub-webhook-id` | Unique webhook delivery ID. Use this for idempotency. |
+| `x-nombasub-tenant-id` | Tenant ID the event belongs to. |
+| `x-nombasub-timestamp` | RFC3339 UTC timestamp for when the delivery attempt was sent. |
+| `x-nombasub-signature` | Base64-encoded HMAC-SHA256 signature generated with your webhook secret. |
+
+## How signature verification works
+
+NombaSub creates the signature from this exact string:
+
+```txt
+eventType:webhookId:tenantId:timestamp
+```
+
+For example:
+
+```txt
+invoice.paid:4f91b391-6d86-4394-b1f3-8ff17b18d2e4:7d5dbf4f-4b48-44a4-8be3-bf5a9fefaf3a:2026-07-02T10:20:00Z
+```
+
+Then NombaSub signs that string using HMAC-SHA256 with your webhook secret and base64-encodes the result.
+
+To verify a webhook:
+
+1. Read `x-nombasub-event`, `x-nombasub-webhook-id`, `x-nombasub-tenant-id`, `x-nombasub-timestamp`, and `x-nombasub-signature` from the request headers.
+2. Build the signature payload as `eventType:webhookId:tenantId:timestamp`.
+3. Generate a base64 HMAC-SHA256 signature using your webhook secret.
+4. Compare your generated signature with `x-nombasub-signature` using a timing-safe comparison.
+5. Process the webhook only when the signatures match.
+
+<Note>
+  The signature is based on the webhook headers above, not on the raw JSON request body.
+</Note>
+
+## Signature verification examples
+
+<Tabs>
+  <Tab title="Python Flask">
+    ```python
+    import base64
+    import hashlib
+    import hmac
+    from flask import Flask, request, abort, jsonify
+    
+    app = Flask(__name__)
+    WEBHOOK_SECRET = "replace_with_your_webhook_secret"
+    
+    
+    def calculate_signature(event_type, webhook_id, tenant_id, timestamp):
+        signing_payload = f"{event_type}:{webhook_id}:{tenant_id}:{timestamp}"
+        digest = hmac.new(
+            WEBHOOK_SECRET.encode("utf-8"),
+            signing_payload.encode("utf-8"),
+            hashlib.sha256,
+        ).digest()
+        return base64.b64encode(digest).decode("utf-8")
+    
+    
+    def verify_nombasub_webhook(headers):
+        event_type = headers.get("x-nombasub-event")
+        webhook_id = headers.get("x-nombasub-webhook-id")
+        tenant_id = headers.get("x-nombasub-tenant-id")
+        timestamp = headers.get("x-nombasub-timestamp")
+        received_signature = headers.get("x-nombasub-signature")
+    
+        if not all([event_type, webhook_id, tenant_id, timestamp, received_signature]):
+            return False
+    
+        expected_signature = calculate_signature(event_type, webhook_id, tenant_id, timestamp)
+        return hmac.compare_digest(expected_signature, received_signature)
+    
+    
+    @app.post("/webhooks/nombasub")
+    def handle_webhook():
+        if not verify_nombasub_webhook(request.headers):
+            abort(401)
+    
+        payload = request.get_json(silent=True) or {}
+        # Process the trusted webhook asynchronously where possible.
+        return jsonify({"received": True}), 200
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    package main
+    
+    import (
+    	"crypto/hmac"
+    	"crypto/sha256"
+    	"encoding/base64"
+    	"fmt"
+    	"net/http"
+    )
+    
+    const webhookSecret = "replace_with_your_webhook_secret"
+    
+    func calculateSignature(eventType, webhookID, tenantID, timestamp string) string {
+    	signingPayload := fmt.Sprintf("%s:%s:%s:%s", eventType, webhookID, tenantID, timestamp)
+    
+    	h := hmac.New(sha256.New, []byte(webhookSecret))
+    	h.Write([]byte(signingPayload))
+    
+    	return base64.StdEncoding.EncodeToString(h.Sum(nil))
+    }
+    
+    func verifyNombaSubWebhook(r *http.Request) bool {
+    	eventType := r.Header.Get("x-nombasub-event")
+    	webhookID := r.Header.Get("x-nombasub-webhook-id")
+    	tenantID := r.Header.Get("x-nombasub-tenant-id")
+    	timestamp := r.Header.Get("x-nombasub-timestamp")
+    	receivedSignature := r.Header.Get("x-nombasub-signature")
+    
+    	if eventType == "" || webhookID == "" || tenantID == "" || timestamp == "" || receivedSignature == "" {
+    		return false
+    	}
+    
+    	expectedSignature := calculateSignature(eventType, webhookID, tenantID, timestamp)
+    	return hmac.Equal([]byte(expectedSignature), []byte(receivedSignature))
+    }
+    
+    func webhookHandler(w http.ResponseWriter, r *http.Request) {
+    	if !verifyNombaSubWebhook(r) {
+    		http.Error(w, "invalid webhook signature", http.StatusUnauthorized)
+    		return
+    	}
+    
+    	// Process the trusted webhook asynchronously where possible.
+    	w.WriteHeader(http.StatusOK)
+    	_, _ = w.Write([]byte(`{"received":true}`))
+    }
+    ```
+  </Tab>
+  <Tab title="TypeScript">
+    ```typescript
+    import express from "express";
+    import crypto from "crypto";
+    
+    const app = express();
+    app.use(express.json());
+    
+    const webhookSecret = "replace_with_your_webhook_secret";
+    
+    function headerValue(value: string | string[] | undefined): string {
+      return Array.isArray(value) ? value[0] : value ?? "";
+    }
+    
+    function calculateSignature(
+      eventType: string,
+      webhookId: string,
+      tenantId: string,
+      timestamp: string
+    ): string {
+      const signingPayload = `${eventType}:${webhookId}:${tenantId}:${timestamp}`;
+      return crypto
+        .createHmac("sha256", webhookSecret)
+        .update(signingPayload, "utf8")
+        .digest("base64");
+    }
+    
+    function timingSafeEqual(a: string, b: string): boolean {
+      const left = Buffer.from(a);
+      const right = Buffer.from(b);
+      return left.length === right.length && crypto.timingSafeEqual(left, right);
+    }
+    
+    function verifyNombaSubWebhook(req: express.Request): boolean {
+      const eventType = headerValue(req.headers["x-nombasub-event"]);
+      const webhookId = headerValue(req.headers["x-nombasub-webhook-id"]);
+      const tenantId = headerValue(req.headers["x-nombasub-tenant-id"]);
+      const timestamp = headerValue(req.headers["x-nombasub-timestamp"]);
+      const receivedSignature = headerValue(req.headers["x-nombasub-signature"]);
+    
+      if (!eventType || !webhookId || !tenantId || !timestamp || !receivedSignature) {
+        return false;
+      }
+    
+      const expectedSignature = calculateSignature(eventType, webhookId, tenantId, timestamp);
+      return timingSafeEqual(expectedSignature, receivedSignature);
+    }
+    
+    app.post("/webhooks/nombasub", (req, res) => {
+      if (!verifyNombaSubWebhook(req)) {
+        return res.status(401).json({ error: "invalid webhook signature" });
+      }
+    
+      // Process the trusted webhook asynchronously where possible.
+      return res.status(200).json({ received: true });
+    });
+    ```
+  </Tab>
+  <Tab title="Java">
+    ```java
+    import javax.crypto.Mac;
+    import javax.crypto.spec.SecretKeySpec;
+    import java.nio.charset.StandardCharsets;
+    import java.security.MessageDigest;
+    import java.util.Base64;
+    
+    public class NombaSubWebhookVerifier {
+        private static final String WEBHOOK_SECRET = "replace_with_your_webhook_secret";
+    
+        public static String calculateSignature(
+                String eventType,
+                String webhookId,
+                String tenantId,
+                String timestamp
+        ) throws Exception {
+            String signingPayload = String.format("%s:%s:%s:%s", eventType, webhookId, tenantId, timestamp);
+    
+            Mac mac = Mac.getInstance("HmacSHA256");
+            SecretKeySpec key = new SecretKeySpec(
+                    WEBHOOK_SECRET.getBytes(StandardCharsets.UTF_8),
+                    "HmacSHA256"
+            );
+            mac.init(key);
+    
+            byte[] digest = mac.doFinal(signingPayload.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(digest);
+        }
+    
+        public static boolean verify(
+                String eventType,
+                String webhookId,
+                String tenantId,
+                String timestamp,
+                String receivedSignature
+        ) throws Exception {
+            if (isBlank(eventType) || isBlank(webhookId) || isBlank(tenantId)
+                    || isBlank(timestamp) || isBlank(receivedSignature)) {
+                return false;
+            }
+    
+            String expectedSignature = calculateSignature(eventType, webhookId, tenantId, timestamp);
+            return MessageDigest.isEqual(
+                    expectedSignature.getBytes(StandardCharsets.UTF_8),
+                    receivedSignature.getBytes(StandardCharsets.UTF_8)
+            );
+        }
+    
+        private static boolean isBlank(String value) {
+            return value == null || value.isBlank();
+        }
+    }
+    ```
+  </Tab>
+  <Tab title="C#">
+    ```csharp
+    using System;
+    using System.Security.Cryptography;
+    using System.Text;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+    
+    [ApiController]
+    public class WebhooksController : ControllerBase
+    {
+        private const string WebhookSecret = "replace_with_your_webhook_secret";
+    
+        private static string CalculateSignature(
+            string eventType,
+            string webhookId,
+            string tenantId,
+            string timestamp)
+        {
+            var signingPayload = $"{eventType}:{webhookId}:{tenantId}:{timestamp}";
+            using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(WebhookSecret));
+            var digest = hmac.ComputeHash(Encoding.UTF8.GetBytes(signingPayload));
+            return Convert.ToBase64String(digest);
+        }
+    
+        private static bool VerifyNombaSubWebhook(IHeaderDictionary headers)
+        {
+            var eventType = headers["x-nombasub-event"].ToString();
+            var webhookId = headers["x-nombasub-webhook-id"].ToString();
+            var tenantId = headers["x-nombasub-tenant-id"].ToString();
+            var timestamp = headers["x-nombasub-timestamp"].ToString();
+            var receivedSignature = headers["x-nombasub-signature"].ToString();
+    
+            if (string.IsNullOrWhiteSpace(eventType) ||
+                string.IsNullOrWhiteSpace(webhookId) ||
+                string.IsNullOrWhiteSpace(tenantId) ||
+                string.IsNullOrWhiteSpace(timestamp) ||
+                string.IsNullOrWhiteSpace(receivedSignature))
+            {
+                return false;
+            }
+    
+            var expectedSignature = CalculateSignature(eventType, webhookId, tenantId, timestamp);
+            return CryptographicOperations.FixedTimeEquals(
+                Encoding.UTF8.GetBytes(expectedSignature),
+                Encoding.UTF8.GetBytes(receivedSignature)
+            );
+        }
+    
+        [HttpPost("/webhooks/nombasub")]
+        public IActionResult HandleWebhook([FromBody] object payload)
+        {
+            if (!VerifyNombaSubWebhook(Request.Headers))
+            {
+                return Unauthorized(new { error = "invalid webhook signature" });
+            }
+    
+            // Process the trusted webhook asynchronously where possible.
+            return Ok(new { received = true });
+        }
+    }
+    ```
+  </Tab>
+  <Tab title="PHP">
+    ```php
+    <?php
+    
+    $webhookSecret = 'replace_with_your_webhook_secret';
+    
+    function header_value(string $name): string {
+        $serverKey = 'HTTP_' . strtoupper(str_replace('-', '_', $name));
+        return $_SERVER[$serverKey] ?? '';
+    }
+    
+    function calculate_signature(
+        string $eventType,
+        string $webhookId,
+        string $tenantId,
+        string $timestamp,
+        string $webhookSecret
+    ): string {
+        $signingPayload = sprintf('%s:%s:%s:%s', $eventType, $webhookId, $tenantId, $timestamp);
+        $digest = hash_hmac('sha256', $signingPayload, $webhookSecret, true);
+        return base64_encode($digest);
+    }
+    
+    $eventType = header_value('x-nombasub-event');
+    $webhookId = header_value('x-nombasub-webhook-id');
+    $tenantId = header_value('x-nombasub-tenant-id');
+    $timestamp = header_value('x-nombasub-timestamp');
+    $receivedSignature = header_value('x-nombasub-signature');
+    
+    if (!$eventType || !$webhookId || !$tenantId || !$timestamp || !$receivedSignature) {
+        http_response_code(401);
+        echo json_encode(['error' => 'missing webhook signature headers']);
+        exit;
+    }
+    
+    $expectedSignature = calculate_signature(
+        $eventType,
+        $webhookId,
+        $tenantId,
+        $timestamp,
+        $webhookSecret
+    );
+    
+    if (!hash_equals($expectedSignature, $receivedSignature)) {
+        http_response_code(401);
+        echo json_encode(['error' => 'invalid webhook signature']);
+        exit;
+    }
+    
+    $payload = json_decode(file_get_contents('php://input'), true);
+    // Process the trusted webhook asynchronously where possible.
+    
+    http_response_code(200);
+    echo json_encode(['received' => true]);
+    ```
+  </Tab>
+</Tabs>
+
+## Webhook payload
+
+Webhook payloads use a common envelope:
+
+```json
+{
+  "id": "4f91b391-6d86-4394-b1f3-8ff17b18d2e4",
+  "eventType": "invoice.paid",
+  "tenantId": "7d5dbf4f-4b48-44a4-8be3-bf5a9fefaf3a",
+  "data": {
+    "code": "INV_z9y8x7w6",
+    "status": "paid",
+    "amountDue": 500000,
+    "amountPaid": 500000,
+    "currency": "NGN"
+  },
+  "createdAt": "2026-07-02T10:20:00Z"
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | string | Unique webhook delivery ID. |
+| `eventType` | string | Event type that triggered the webhook. |
+| `tenantId` | string | Tenant the event belongs to. |
+| `data` | object | Event-specific payload. |
+| `createdAt` | string | Timestamp for when the webhook payload was created. |
+
+## Processing checklist
+
+- Validate the signature before processing the event.
+- Return a `2xx` response quickly after accepting the webhook.
+- Use `x-nombasub-webhook-id` or payload `id` to make processing idempotent.
+- Process business logic asynchronously where possible.
+- Do not grant value, mark an invoice as paid, or change subscription state when signature validation fails.
