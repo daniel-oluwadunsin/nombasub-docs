@@ -9,7 +9,7 @@ description: "Understand API error responses and recommended handling."
 
 API errors use the same top-level response envelope as successful responses, with `status` set to `error`.
 
-## Current error shape
+## Error shape
 
 ```json
 {
@@ -29,13 +29,27 @@ API errors use the same top-level response envelope as successful responses, wit
 | `409` | Conflict, such as duplicate tenant or customer. |
 | `500` | Unexpected server error. |
 
-## Recommended handling
+## Examples
+
+```json
+{
+  "status": "error",
+  "message": "Plan not found",
+  "data": null
+}
+```
+
+```json
+{
+  "status": "error",
+  "message": "A customer with this email already exists",
+  "data": null
+}
+```
+
+## Handling guidance
 
 - Treat non-2xx responses as failed requests.
-- Show validation messages in your dashboard or logs.
-- Retry only safe network failures.
+- Surface validation messages in logs or dashboards.
+- Retry network errors with care.
 - Do not retry payment failures blindly.
-
-## Recommended future shape
-
-A future error shape may include `code`, `request_id`, and structured `details` fields.

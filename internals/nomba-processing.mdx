@@ -1,0 +1,46 @@
+---
+title: "Nomba Processing"
+description: "Internal checkout, tokenization, charge, and webhook mapping behavior."
+---
+
+# Nomba Processing
+
+## In a nutshell
+
+Nomba is the provider behind checkout, tokenized cards, and incoming payment updates. The engine wraps provider details with subscription metadata so every transaction can be mapped back to the correct tenant and billing record.
+
+## Checkout initialization metadata
+
+Checkout initialization stores a `nomba_initiations` record and sends metadata to Nomba.
+
+| Metadata key | Meaning |
+| --- | --- |
+| `nombaSubTenantId` | Internal tenant UUID. |
+| `nombaSubCustomerCode` | Customer code. |
+| `nombaSubPlanCode` | Plan code. |
+| `nombaSubPlanVersion` | Plan version index. |
+| `nombaSubTenantAccountId` | Tenant account/subaccount ID. |
+| `nombaSubTenantOrderReference` | Merchant-supplied order reference, when present. |
+| `nombaSubInvoiceId` | Invoice ID for invoice-created checkout. |
+| `nombaSubSubscriptionId` | Subscription ID for invoice-created checkout. |
+
+## Card tokenization
+
+On `payment_success`, the webhook handler expects `tokenizedCardData` for card subscription payments. It stores a `payment_sources` record with:
+
+- `type = card`
+- `card.authorizationToken = tokenKey`
+- card type, PAN/masked PAN, last4, currency, expiry month, expiry year
+- `status = active`
+
+## Checkout-created subscription
+
+When the payment success belongs to a checkout initiation without existing subscription metadata, the handler creates a new subscription from the plan version, attaches the saved card, creates a paid invoice for non-trial plans, and creates a successful payment intent.
+
+## Invoice-created checkout
+
+When the initiation includes `nombaSubInvoiceId` and `nombaSubSubscriptionId`, payment success marks the invoice paid, attaches the card payment source to the subscription, advances the billing cycle, and increments invoice count.
+
+## Tokenized-card renewal charge
+
+For renewal charges, the invoice processor creates a payment intent, sends a tokenized-card charge request with `tokenKey`, and then marks the payment intent/invoice/subscription based on the provider result.

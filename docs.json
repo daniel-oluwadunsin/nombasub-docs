@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "Nomba Subscriptions Engine",
   "colors": {
-    "primary": "#0F766E",
-    "light": "#14B8A6",
-    "dark": "#0F766E"
+    "primary": "#EAB308",
+    "light": "#FACC15",
+    "dark": "#FDE047"
   },
   "favicon": "/favicon.svg",
   "navigation": {
@@ -54,7 +54,6 @@
           "guides/handle-nomba-webhooks",
           "guides/configure-merchant-webhooks",
           "guides/subaccounts-and-settlement",
-          "guides/customer-portal-session",
           "guides/test-billing-flow",
           "guides/nomba-integration",
           "guides/webhook-events"
@@ -69,20 +68,7 @@
           "api-reference/customers",
           "api-reference/subscriptions",
           "api-reference/checkout",
-          "api-reference/invoices",
-          "api-reference/payment-attempts",
-          "api-reference/payment-sources",
-          "api-reference/webhook-endpoints",
-          "api-reference/portal-sessions",
-          "api-reference/analytics"
-        ]
-      },
-      {
-        "group": "MCP Server",
-        "icon": "bot",
-        "pages": [
-          "mcp/overview",
-          "mcp/planned-tools"
+          "api-reference/webhook-endpoints"
         ]
       },
       {
@@ -94,6 +80,16 @@
           "operations/webhook-security",
           "operations/sandbox-testing",
           "operations/production-checklist"
+        ]
+      },
+      {
+        "group": "Internals",
+        "icon": "database",
+        "pages": [
+          "internals/data-model",
+          "internals/billing-lifecycle",
+          "internals/nomba-processing",
+          "internals/webhook-delivery"
         ]
       }
     ]
@@ -126,5 +122,9 @@
     "socials": {
     }
   },
-  "description": "Developer documentation for integrating Nomba Subscriptions Engine: plans, customers, subscriptions, checkout, tokenized cards, invoices, and webhooks."
+  "description": "Developer documentation for integrating Nomba Subscriptions Engine: plans, customers, subscriptions, checkout, tokenized cards, invoices, and webhooks.",
+  "appearance": {
+    "default": "system",
+    "strict": false
+  }
 }

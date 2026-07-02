@@ -5,30 +5,51 @@ description: "Configure merchant webhook delivery."
 
 # Webhook Endpoints API
 
-## Available setup route
+Webhook endpoints receive normalized billing events from the Subscriptions Engine.
 
-A webhook URL setup route is available in some deployments:
+## POST /auth/set-webhook-url
 
-```txt
-POST /auth/set-webhook-url
-```
+Set the webhook URL for a tenant.
 
 ```bash
-curl -X POST https://api.example.com/auth/set-webhook-url \
+curl -X POST https://nombasub.oluwadunsin.dev/auth/set-webhook-url \
   -H "Content-Type: application/json" \
   -H "X-Api-Key: sub_xxx" \
-  -d '{"webhookUrl":"https://merchant.example.com/webhooks/nombasub"}'
+  -d '{
+    "webhookUrl": "https://merchant.example.com/webhooks/nombasub"
+  }'
 ```
 
-## Not currently exposed
+## Request body
 
-Full webhook endpoint management is not currently available as public API.
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `webhookUrl` | string | Yes | Public HTTPS endpoint that receives webhooks. |
 
-Recommended future endpoints:
+## Response
 
-```txt
-POST /v1/webhook-endpoints
-GET /v1/webhook-endpoints
-DELETE /v1/webhook-endpoints/:endpointCode
-POST /v1/webhook-deliveries/:deliveryId/replay
+```json
+{
+  "status": "success",
+  "message": "Webhook URL set successfully",
+  "data": {
+    "webhookSecret": "whsec_64_character_secret"
+  }
+}
 ```
+
+## Delivery headers
+
+Webhook deliveries include:
+
+| Header | Description |
+| --- | --- |
+| `x-nombasub-event` | Event type, such as `invoice.paid`. |
+| `x-nombasub-webhook-id` | Unique delivery ID. |
+| `x-nombasub-tenant-id` | Tenant ID. |
+| `x-nombasub-timestamp` | Delivery timestamp. |
+| `x-nombasub-signature` | Signature when a webhook secret is configured. |
+
+## Related guide
+
+See [Configure Merchant Webhooks](/guides/configure-merchant-webhooks) and [Webhook Events](/guides/webhook-events).

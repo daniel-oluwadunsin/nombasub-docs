@@ -27,8 +27,13 @@ Track:
 - Payment failures.
 - Webhook delivery failures.
 - Customers with paused subscriptions.
-- Revenue by plan in your own reporting system until analytics endpoints are available.
+- Revenue by plan in your own reporting system.
 
-## Not currently available
+## Webhook readiness
 
-API key scopes, public webhook replay, customer portal sessions, analytics endpoints, and MCP tools are planned or recommended surfaces, not current production dependencies.
+Before live traffic, make sure your webhook endpoint:
+
+- Returns 2xx quickly.
+- Handles duplicate webhook IDs safely.
+- Logs event type, webhook ID, tenant ID, and timestamp.
+- Does not block customer access updates on slow downstream jobs.

@@ -1,0 +1,79 @@
+---
+title: "Webhook Delivery"
+description: "Internal outgoing webhook envelope, headers, signing, retries, and event data mapping."
+---
+
+# Webhook Delivery
+
+## In a nutshell
+
+Merchant webhooks are queued as delivery records, serialized with a common envelope, sent to the tenant webhook URL, and tracked with delivery attempts.
+
+## Envelope
+
+The queue serializes webhook payloads as:
+
+```json
+{
+  "id": "delivery_uuid",
+  "eventType": "invoice.paid",
+  "tenantId": "tenant_uuid",
+  "data": {},
+  "createdAt": "2026-07-02T10:20:00Z"
+}
+```
+
+The `id` is the webhook delivery ID and is also stored as the `webhook_deliveries.id` primary key.
+
+## Headers
+
+The sender attaches:
+
+| Header | Value |
+| --- | --- |
+| `Content-Type` | `application/json` |
+| `x-nombasub-event` | Event type. |
+| `x-nombasub-webhook-id` | Delivery ID. |
+| `x-nombasub-tenant-id` | Tenant ID. |
+| `x-nombasub-timestamp` | RFC3339 UTC timestamp. |
+| `x-nombasub-signature` | HMAC signature when tenant webhook secret exists. |
+
+## Signature input
+
+Outgoing signatures hash this string:
+
+```txt
+eventType:webhookId:tenantId:timestamp
+```
+
+The hash is HMAC SHA256 using the tenant webhook secret and is base64 encoded.
+
+## Delivery records
+
+`webhook_deliveries` stores:
+
+| Field | Meaning |
+| --- | --- |
+| `endpointUrl` | Tenant webhook URL. |
+| `eventType` | Normalized event type. |
+| `payload` | Serialized envelope JSON. |
+| `status` | `PENDING`, `DELIVERED`, or `FAILED`. |
+| `retryCount` | Attempt counter. |
+| `maxAttemptCount` | Defaults to `3`. |
+
+`webhook_delivery_attempts` stores each HTTP attempt with status code, response body, and attempt count.
+
+## Event data mapping
+
+| Event group | `data` shape |
+| --- | --- |
+| Payment method events | `PaymentSource` object. |
+| Invoice events | `Invoice` object. |
+| `checkout.created` | Object with `invoice` and `checkoutUrl`. |
+| `payment_success` | Enriched Nomba webhook `data` object with subscription fields added. |
+| Subscription events | `Subscription` object. |
+| `subscription.card_expiring` | Object with `subscription` and `paymentSource`. |
+
+## Delivery eligibility
+
+A delivery is only queued when the tenant has a webhook URL and webhook secret configured.

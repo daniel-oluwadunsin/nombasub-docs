@@ -38,6 +38,6 @@ The first card payment is completed through Nomba Checkout with tokenization ena
 
 After billing events occur, the engine sends normalized webhook events such as `invoice.paid`, `invoice.payment_failed`, `subscription.created`, and `subscription.paused` to your configured endpoint.
 
-## Planned surfaces
+## Nomba as provider
 
-Some product areas, such as customer portal sessions, analytics endpoints, and MCP tooling, are documented as **Planned** where they are not currently exposed as public APIs.
+Nomba is the payment provider behind checkout and tokenized-card charges. You do not need to bring Nomba credentials into your integration; you call the Subscriptions Engine API and receive subscription-native webhooks.

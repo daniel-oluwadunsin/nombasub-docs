@@ -9,18 +9,29 @@ description: "Recommended test flow for subscription billing integrations."
 
 Use a demo or sandbox workspace to test your billing flow before accepting production payments.
 
-## Test checklist
+## Test flow
 
-1. Create a tenant and store the API key.
+1. Create or obtain a tenant API key.
 2. Create a plan.
 3. Create a customer.
-4. Initialize checkout for the plan and customer email.
-5. Complete checkout with test payment details provided by the platform team.
-6. Confirm your webhook endpoint receives billing events.
-7. Confirm your system marks the customer as subscribed.
-8. Test failed payment behavior where supported.
+4. Initialize checkout for the plan and customer.
+5. Complete checkout using test payment details provided for your environment.
+6. Receive merchant webhook events.
+7. Confirm your app grants access after `invoice.paid` or `payment_success`.
+8. Confirm your app handles `invoice.payment_failed` and `subscription.paused`.
 
-## Events to verify
+## Recommended assertions
+
+| Step | What to check |
+| --- | --- |
+| Plan creation | Plan has the expected amount, interval, and currency. |
+| Customer creation | Customer email and external reference match your system. |
+| Checkout | Checkout link is returned and redirects correctly. |
+| Payment success | Your webhook endpoint receives a success event. |
+| Subscription | Customer is marked subscribed in your app. |
+| Failure | Failed payment does not grant access. |
+
+## Webhook events to test
 
 - `payment_method.attached`
 - `invoice.paid`
@@ -28,7 +39,3 @@ Use a demo or sandbox workspace to test your billing flow before accepting produ
 - `subscription.created`
 - `subscription.paused`
 - `payment_success`
-
-## MCP testing
-
-MCP tooling is planned. Do not include MCP checks in production readiness until the MCP server is available for your workspace.

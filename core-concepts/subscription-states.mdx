@@ -15,18 +15,18 @@ Subscription status tells you whether a subscription is billable, paused, or end
 | --- | --- |
 | `active` | Subscription is active and eligible for billing. Trial subscriptions also use `active` with trial date fields. |
 | `paused` | Billing is paused, usually because payment failed or the payment source could not be used. |
-| `canceled` | Reserved for canceled subscriptions. A public cancel endpoint is not currently available. |
-| `expired` | Reserved for expired subscriptions. |
-| `attention` | Reserved for subscriptions that need merchant or customer action. |
+| `canceled` | Subscription has been canceled. |
+| `expired` | Subscription has expired. |
+| `attention` | Subscription needs merchant or customer action. |
 
-## Common transitions
+## Common transition
 
 ```txt
 active -> paused
 ```
 
-A failed invoice payment can pause the subscription.
+A failed invoice payment pauses the subscription.
 
 ## Trial behavior
 
-Trials are represented with `trialStartDate` and `trialEndDate`. There is no separate public `trialing` status at this time.
+Trials are represented with `trialStartDate` and `trialEndDate`. There is no separate public `trialing` status in the current API shape.
