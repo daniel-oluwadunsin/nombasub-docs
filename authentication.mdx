@@ -20,7 +20,7 @@ X-Api-Key: sub_xxx
 Example:
 
 ```bash
-curl https://api.example.com/v1/plan/ \
+curl https://nombasub.oluwadunsin.dev/v1/plan/ \
   -H "X-Api-Key: sub_xxx"
 ```
 
@@ -29,7 +29,7 @@ curl https://api.example.com/v1/plan/ \
 Register your business:
 
 ```bash
-curl -X POST https://api.example.com/auth/register \
+curl -X POST https://nombasub.oluwadunsin.dev/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "businessName": "Acme SaaS",
@@ -40,7 +40,7 @@ curl -X POST https://api.example.com/auth/register \
 Or retrieve an existing key by account ID:
 
 ```bash
-curl -X POST https://api.example.com/auth/login \
+curl -X POST https://nombasub.oluwadunsin.dev/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "accountId": "nomba_account_or_subaccount_id"

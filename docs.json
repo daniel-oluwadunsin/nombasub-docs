@@ -58,7 +58,7 @@
       },
       {
         "group": "API Reference",
-        "icon": "file-doc",
+        "icon": "link",
         "pages": [
           "api-reference/auth",
           "api-reference/plans",

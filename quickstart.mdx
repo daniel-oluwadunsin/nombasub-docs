@@ -14,7 +14,7 @@ This guide shows the shortest path to a card-backed subscription: create a tenan
 Create a tenant and store the returned key securely on your server.
 
 ```bash
-curl -X POST https://api.example.com/auth/register \
+curl -X POST https://nombasub.oluwadunsin.dev/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "businessName": "Acme SaaS",
@@ -37,7 +37,7 @@ Response:
 ## 2. Create a plan
 
 ```bash
-curl -X POST https://api.example.com/v1/plan/ \
+curl -X POST https://nombasub.oluwadunsin.dev/v1/plan/ \
   -H "Content-Type: application/json" \
   -H "X-Api-Key: sub_xxx" \
   -d '{
@@ -54,7 +54,7 @@ curl -X POST https://api.example.com/v1/plan/ \
 ## 3. Create a customer
 
 ```bash
-curl -X POST https://api.example.com/v1/customer/ \
+curl -X POST https://nombasub.oluwadunsin.dev/v1/customer/ \
   -H "Content-Type: application/json" \
   -H "X-Api-Key: sub_xxx" \
   -d '{
@@ -68,7 +68,7 @@ curl -X POST https://api.example.com/v1/customer/ \
 ## 4. Initialize checkout
 
 ```bash
-curl -X POST https://api.example.com/v1/checkout/order \
+curl -X POST https://nombasub.oluwadunsin.dev/v1/checkout/order \
   -H "Content-Type: application/json" \
   -H "X-Api-Key: sub_xxx" \
   -d '{
