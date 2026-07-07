@@ -1,0 +1,124 @@
+---
+title: "Create a Direct-Debit Subscription"
+description: "Set up a recurring subscription backed by a bank direct-debit mandate."
+---
+
+# Create a Direct-Debit Subscription
+
+A direct-debit subscription lets the merchant pull recurring payments directly from the customer's bank account. Instead of a card token, the payment source is a **mandate** issued by the customer's bank via Nomba. Once active, each billing cycle triggers a debit against that mandate.
+
+## In a nutshell
+
+```txt
+Create plan -> Initialize mandate -> Customer authorizes at bank ->
+Nomba marks mandate Active + ADVICE_SENT -> Engine creates subscription ->
+Recurring billing debits the mandate every cycle
+```
+
+## Prerequisites
+
+- A plan with a recurring interval. Create one with [`POST /v1/plan/`](/api-reference/plans).
+- The customer's bank account details and phone number.
+
+## 1. Initialize the mandate
+
+```bash
+curl -X POST https://api.example.com/v1/checkout/direct-debit \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_xxx" \
+  -d '{
+    "planCode": "PLN_xxx",
+    "customerEmail": "customer@example.com",
+    "customerAccountNumber": "0000000000",
+    "customerAccountName": "Ada Lovelace",
+    "customerName": "Ada Lovelace",
+    "customerAddress": "1 Test St, Lagos",
+    "customerPhoneNumber": "2348000000000",
+    "bankCode": "058",
+    "narration": "Growth Monthly subscription",
+    "frequency": "MONTHLY",
+    "startDate": "2026-07-07T00:00:00Z",
+    "endDate": "2027-07-07T00:00:00Z",
+    "startImmediately": true
+  }'
+```
+
+The engine creates a pending `NombaInitiation` and calls Nomba to register the mandate. On success it returns a mandate ID:
+
+```json
+{
+  "status": "success",
+  "message": "Direct debit mandate created successfully",
+  "data": { "mandateId": "..." }
+}
+```
+
+Nothing else exists yet — no subscription, no payment source. The customer must authorize the mandate before billing can begin.
+
+### Field notes
+
+- `bankCode` — 3-digit CBN code. Examples: `058` GTBank, `011` First Bank, `044` Access, `057` Zenith, `033` UBA.
+- `customerPhoneNumber` — Nomba expects the international form `234...` (with or without a leading `+`).
+- `startDate` / `endDate` — Nomba's Jackson deserializer treats these as `LocalDateTime`. The engine already reformats them for you; if you're calling Nomba directly, use `YYYY-MM-DDTHH:MM` without any timezone offset.
+- `frequency` — accepts `MONTHLY`, `WEEKLY`, `QUARTERLY`, and other cadences documented by Nomba. Must be consistent with the plan interval.
+
+## 2. Customer authorizes the mandate
+
+Out-of-band: the customer receives an approval prompt from their bank (SMS or bank app) and confirms. Nomba then flips the mandate to:
+
+- `mandateStatus = Active`
+- `mandateAdviceStatus = ADVICE_SENT`
+
+The engine polls Nomba for this state change with per-mandate exponential backoff — starting at 1 minute for the first few attempts and stretching out over time. Idle mandates are auto-expired after 30 days.
+
+## 3. Engine activates the subscription
+
+The moment Nomba reports `Active + ADVICE_SENT`, the engine — inside a single database transaction — does the following:
+
+1. Creates a `PaymentSource` of type `bank` with the mandate attached and status `active`.
+2. Creates a `Subscription` (`active`, or `trialing` if the plan has a trial period).
+3. Marks the `NombaInitiation` as `completed`.
+4. Enqueues `mandate.activated` and `subscription.created` webhooks.
+5. Enqueues the "subscription started" email to the customer.
+
+There is nothing for you to do here — polling handles the state change automatically.
+
+## 4. Recurring debits
+
+On every billing cycle, the invoice-processing cron opens the invoice and calls Nomba's `debit-mandate` endpoint against the saved payment source. On success:
+
+- `invoice.paid` webhook fires.
+- `mandate.debit_success` webhook fires.
+- A `Settlement` row is created for the merchant's next payout.
+
+On failure:
+
+- `PaymentIntent` is marked failed with a `failureReason`.
+- If `allowRetries` was `true` on the subscription, the invoice is scheduled 24h later and the subscription moves to `past_due`.
+- After exhausted retries (or a non-transient failure), the invoice is marked `failed`, the subscription is `paused`, and the customer gets a "subscription paused" email.
+
+## 5. Cancellation
+
+To cancel a direct-debit subscription — for example when the merchant terminates it — call [`PUT /v1/subscription/:idOrCode/mandate`](/api-reference/subscriptions):
+
+```bash
+curl -X PUT https://api.example.com/v1/subscription/SUB_xxx/mandate \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: sub_xxx" \
+  -d '{ "status": "DELETED" }'
+```
+
+Accepted values: `SUSPENDED`, `DELETED`. The engine updates the mandate at Nomba, marks the payment source inactive, and emits the corresponding `mandate.*` webhook. To cancel just the subscription (without touching the mandate), use `POST /v1/subscription/:idOrCode/cancel`.
+
+## Common failure modes
+
+- **`Invalid phone number`** — use the international form `234...`.
+- **`startDate must be a date in the present or in the future`** — Nomba compares against wall-clock time; the engine already bumps past-times to `now`, but if you're constructing the payload yourself, send a fresh timestamp.
+- **`Failed to retrieve Mandate Status` during polling** — usually a stale sandbox mandate. The backoff scheduler stretches the retry interval automatically; nothing to do.
+- **Mandate stays in `ADVICE_NOT_SENT`** — Nomba hasn't dispatched the advice to the bank yet. Sandbox usually catches up within a few minutes; in production this can take longer depending on the bank.
+
+## Related
+
+- [Card-backed subscription](/guides/card-backed-subscription) — the sibling flow that uses a tokenized card instead of a mandate.
+- [Subscription states](/core-concepts/subscription-states) — the full lifecycle diagram including `past_due`, `paused`, and `attention`.
+- [Test billing flow](/guides/test-billing-flow) — walking through webhooks and settlements end-to-end.

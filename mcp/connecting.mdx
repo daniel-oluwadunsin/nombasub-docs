@@ -1,0 +1,138 @@
+---
+title: "Connecting a Client"
+description: "How to add the Subscriptions Engine MCP server to Claude Desktop, Claude web, Cursor, Codex, and MCP Inspector."
+---
+
+# Connecting a Client
+
+The MCP server accepts any client that supports the **Streamable HTTP** transport. You'll always need two things:
+
+1. The endpoint: `https://mcp.oluwadunsin.dev/mcp`
+2. Your merchant API key, sent as an `X-Api-Key` header.
+
+You can grab or rotate the API key from [`POST /auth/rotate-api-key`](/api-reference/auth).
+
+## Claude Desktop (GUI)
+
+1. Open **Claude Desktop** → click your profile / name → **Settings**.
+2. Go to **Connectors** (older builds call this **Developer → MCP Servers**).
+3. Click **Add custom connector**.
+4. Fill in:
+   - **Name:** `Subscriptions Engine`
+   - **URL:** `https://mcp.oluwadunsin.dev/mcp`
+   - **Transport:** Streamable HTTP
+   - **Custom header:** `X-Api-Key` = `<your merchant api key>`
+5. Save. All 15 tools appear in the tool picker inside every chat.
+
+## Claude Desktop (JSON config)
+
+For older Claude Desktop builds, edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+
+```json
+{
+  "mcpServers": {
+    "subengine": {
+      "transport": {
+        "type": "streamable-http",
+        "url": "https://mcp.oluwadunsin.dev/mcp",
+        "headers": { "X-Api-Key": "<your merchant api key>" }
+      }
+    }
+  }
+}
+```
+
+Restart Claude Desktop for the change to take effect.
+
+## Claude web (claude.ai)
+
+The web app supports custom connectors on **Pro / Team+ plans**.
+
+1. `claude.ai` → click profile → **Settings** → **Connectors**.
+2. **Add custom connector**.
+3. Name, URL, and `X-Api-Key` header exactly like the Desktop flow above.
+
+If the **Connectors** tab isn't visible, your plan doesn't include it — fall back to Claude Desktop.
+
+## Cursor
+
+Cursor supports MCP via the same JSON shape as Claude Desktop. In **Settings → Cursor MCP**, add:
+
+```json
+{
+  "mcpServers": {
+    "subengine": {
+      "transport": {
+        "type": "streamable-http",
+        "url": "https://mcp.oluwadunsin.dev/mcp",
+        "headers": { "X-Api-Key": "<your merchant api key>" }
+      }
+    }
+  }
+}
+```
+
+Restart Cursor to pick up the change.
+
+## Codex CLI
+
+```bash
+codex mcp add subengine \
+  --transport streamable-http \
+  --url https://mcp.oluwadunsin.dev/mcp \
+  --header "X-Api-Key: <your merchant api key>"
+```
+
+Verify:
+
+```bash
+codex mcp list
+```
+
+You should see `subengine` alongside any other MCP servers you have. New Codex sessions will surface the tools automatically.
+
+## MCP Inspector
+
+The reference exploration tool. Great for smoke-testing before pointing a "real" client at the server.
+
+```bash
+npx @modelcontextprotocol/inspector
+```
+
+In the UI:
+
+- **Transport type:** Streamable HTTP
+- **URL:** `https://mcp.oluwadunsin.dev/mcp`
+- **Custom header:** `X-Api-Key: <your merchant api key>`
+
+Click **Connect**. Explore the **Tools**, **Resources**, and **Prompts** tabs. Try `compute_metric` with `metric: mrr`, or read `plans://all`.
+
+## Verifying by hand
+
+If you'd rather curl:
+
+```bash
+# health probe (no auth)
+curl -sS https://mcp.oluwadunsin.dev/health
+
+# initialize handshake
+curl -sS -D /tmp/h.txt -X POST https://mcp.oluwadunsin.dev/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -H "X-Api-Key: <your key>" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"curl","version":"0"}}}'
+
+SESSION=$(grep -i mcp-session-id /tmp/h.txt | awk '{print $2}' | tr -d '\r\n')
+
+curl -sS -X POST https://mcp.oluwadunsin.dev/mcp \
+  -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
+  -H "X-Api-Key: <your key>" -H "Mcp-Session-Id: $SESSION" \
+  -d '{"jsonrpc":"2.0","method":"notifications/initialized"}'
+
+curl -sS -X POST https://mcp.oluwadunsin.dev/mcp \
+  -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
+  -H "X-Api-Key: <your key>" -H "Mcp-Session-Id: $SESSION" \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
+```
+
+You should get a JSON response listing all 15 tools.

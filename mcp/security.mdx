@@ -1,0 +1,91 @@
+---
+title: "MCP Security"
+description: "Auth pass-through, per-key rate limits, dry-run for destructive tools, and the structured error envelope."
+---
+
+# MCP Security
+
+The MCP server sits in front of the same REST API a merchant integration would use, and every request runs under the merchant's own API key. It doesn't hold or generate any credentials of its own.
+
+## Authentication
+
+Every request to the MCP endpoint must include the merchant's API key:
+
+```
+X-Api-Key: <your merchant api key>
+```
+
+Requests without the header are rejected at the HTTP layer with `401` before any tool logic runs:
+
+```json
+{
+  "error": {
+    "code": "unauthorized",
+    "message": "missing X-Api-Key header — configure your MCP client with the merchant API key"
+  }
+}
+```
+
+The MCP server forwards that header verbatim to the engine, which applies the same tenant-isolation middleware that guards `/v1` for direct REST callers. There is no separate account or session for MCP.
+
+Rotate a key with [`POST /auth/rotate-api-key`](/api-reference/auth). Rotation invalidates the old key immediately for both REST and MCP callers.
+
+## Rate limiting
+
+Each API key gets a token bucket sized to **120 requests / minute** by default (configurable server-side via `MCP_RATE_LIMIT_PER_MINUTE`). Exceeding the budget returns `429`:
+
+```
+HTTP/1.1 429 Too Many Requests
+Retry-After: 10
+
+{"error":{"code":"rate_limited","message":"too many requests for this API key; slow down and retry"}}
+```
+
+Requests that exceed the limit never reach the engine, so they don't consume tenant-side quotas either.
+
+## `dry_run` for destructive tools
+
+`retry_payment` and `cancel_subscription` accept `dry_run: true`. When set:
+
+- The tool does **not** mutate anything.
+- Instead it fetches the target invoice or subscription and returns its current state, wrapped in an envelope that makes the intent explicit:
+
+```json
+{
+  "dry_run": true,
+  "action": "cancel_subscription",
+  "note": "no changes were made; entity below shows the current state that would be affected",
+  "entity": { "code": "SUB_...", "status": "active", ... }
+}
+```
+
+Use it to preview the target before committing.
+
+## Structured error envelope
+
+Tool errors come back as JSON with three fields so clients can decide how to react:
+
+```json
+{
+  "error": {
+    "code": "invalid_input" | "engine_error",
+    "message": "<human-readable>",
+    "retryable": true | false
+  }
+}
+```
+
+- `invalid_input` — the tool arguments were rejected before hitting the engine (bad date format, empty ID, unknown metric name, unknown enum value). **Never retry** without changing the input.
+- `engine_error` — the engine returned an error at HTTP time. `retryable: true` on transient failures. Clients can retry with a backoff.
+
+## What the server does not do
+
+- No caching of merchant data. Every tool call is a live REST call.
+- No cross-tenant fan-out. One MCP session is scoped to exactly one API key.
+- No stored PII. The MCP server keeps only the session id needed for the JSON-RPC protocol.
+
+## Operational safeguards
+
+- **Health endpoint at `GET /health`** bypasses auth so load balancers can probe without carrying secrets.
+- **Structured logging** on every failure path — Nomba error bodies, business-level failures (`status: false` on HTTP 200), and rate-limit hits.
+- **Read-only tools** all declare `readOnlyHint: true` in their MCP annotations, so clients that gate confirmation UX on destructive vs. read-only can respect that.

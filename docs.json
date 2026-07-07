@@ -48,12 +48,24 @@
         "icon": "route",
         "pages": [
           "guides/card-backed-subscription",
+          "guides/direct-debit-subscription",
           "guides/charge-tokenized-card",
           "guides/handle-nomba-webhooks",
           "guides/configure-merchant-webhooks",
           "guides/test-billing-flow",
           "guides/nomba-integration",
           "guides/webhooks"
+        ]
+      },
+      {
+        "group": "MCP Server",
+        "icon": "plug-zap",
+        "pages": [
+          "mcp/overview",
+          "mcp/connecting",
+          "mcp/tools",
+          "mcp/resources-and-prompts",
+          "mcp/security"
         ]
       },
       {

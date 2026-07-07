@@ -1,0 +1,62 @@
+---
+title: "Resources and Prompts"
+description: "Browsable read-only URIs and reusable multi-step prompts exposed by the MCP server."
+---
+
+# Resources and Prompts
+
+Beyond callable tools, the MCP server exposes two other primitives that many clients (Claude Desktop, MCP Inspector) surface directly in their UI.
+
+## Resources
+
+Read-only URIs that a client can browse without invoking a tool. Perfect for grounding an assistant on the merchant's live data.
+
+| URI | Contents |
+| --- | --- |
+| `plans://all` | Every billing plan on the merchant account. |
+| `subscriptions://active` | Subscriptions currently in the `active` state. |
+| `analytics://summary` | Full dashboard analytics response for the current billing month. |
+| `events://recent` | Most recent outbound webhook deliveries — useful for support. |
+| `customers://{emailOrCode}` | Per-customer profile, subscriptions, and payment sources (URI template). |
+
+All resources are backed by the same engine endpoints as the query tools; they exist so clients that support "context resources" can pin them to a conversation up front.
+
+### Example
+
+A Claude Desktop user can drag `plans://all` into a chat, ask "which of these plans has the worst churn?", and Claude will use `compute_metric` and `get_subscriptions` to answer without the user having to name specific plan codes.
+
+## Prompts
+
+Reusable prompt templates that orchestrate multiple tools into a single guided workflow. Clients typically expose them as slash-commands or "run" buttons.
+
+### `monthly_business_review`
+
+Orchestrates a monthly review. Optional argument:
+
+- `focus` — narrow the review to one area, e.g. `"revenue"`, `"churn"`, `"payments"`.
+
+Under the hood the prompt guides the assistant through:
+
+1. `generate_business_report` — top-level view.
+2. `explain_metric_change` on any concerning metric (MRR, churn rate, payment failure rate).
+3. `compare_periods` on revenue and MRR (`this_month` vs `last_month`).
+4. `generate_dunning_report` if payment failures look elevated.
+5. A Markdown summary with Highlights / Concerns / Recommended actions.
+
+### `subscription_health_check`
+
+Diagnoses subscription health and produces per-customer next actions. Optional argument:
+
+- `customer` — focus on a single customer by email or code.
+
+Steps the prompt guides through:
+
+1. `compute_metric` for `churn_rate`, `retention_rate`, `past_due_subscriptions`, `payment_failure_rate`.
+2. `get_subscriptions` filtered on concerning states, inspecting the top offenders.
+3. `explain_metric_change` on `churn_rate` to surface drivers.
+4. `generate_dunning_report` to surface at-risk customers.
+5. A Markdown summary that recommends specific tool calls per customer (`send_dunning_reminder`, `retry_payment`, `create_portal_link`).
+
+## Discovering these from a client
+
+Once connected, most MCP-aware clients surface resources and prompts in dedicated tabs or menus. In [MCP Inspector](/mcp/connecting#mcp-inspector) they appear as **Resources** and **Prompts** tabs alongside **Tools**. In Claude Desktop, prompts appear as slash-commands and resources appear in the paperclip / attachment menu.

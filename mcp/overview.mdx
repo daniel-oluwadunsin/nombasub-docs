@@ -1,30 +1,41 @@
 ---
 title: "MCP Overview"
-description: "Planned AI-agent integration for querying and operating billing data."
+description: "AI-native interface to the Subscriptions Engine — tools, resources, and prompts for Claude, Cursor, Codex, and any MCP-aware client."
 ---
 
 # MCP Overview
 
-## Planned
+The Subscriptions Engine ships with a companion **MCP (Model Context Protocol) server** at `https://mcp.oluwadunsin.dev/mcp`. It lets any MCP-aware client — Claude Desktop, Claude web, Cursor, Codex, ChatGPT connectors — call the engine's REST API through structured tools instead of hand-crafted HTTP requests.
 
-The MCP server is planned as an AI-native interface for the Subscriptions Engine. It will let businesses query billing data and perform approved actions from MCP-compatible tools such as Claude Desktop, Cursor, Codex, and other agents.
+The server is a **thin translation layer**. Every tool call is forwarded to the existing REST API using the merchant's `X-Api-Key`, so tenant isolation, validation, and every downstream side effect (webhooks, emails, DB writes) continue to run through the same middleware and services that back the public API.
 
-The MCP server should use your Subscriptions Engine API key, not Nomba credentials.
+## What you get
 
-```bash
-SUBENGINE_API_KEY=sub_xxx
-SUBENGINE_API_URL=https://api.example.com
-```
+| Category | Count | Purpose |
+| --- | --- | --- |
+| Tools    | 15 | Query, analyze, act, or generate reports on subscription data. |
+| Resources | 4 static + 1 template | Read-only URIs the client can browse (`plans://all`, `customers://{emailOrCode}`, …). |
+| Prompts  | 2 | Reusable multi-step workflows (`monthly_business_review`, `subscription_health_check`). |
 
-## Example prompts
+## Design
 
-- What is my MRR this month?
-- Show me active subscriptions.
-- Show me failed invoices this week.
-- Generate a revenue report for this month.
-- Create a portal link for this customer.
-- Retry this failed invoice.
+- **Transport:** Streamable HTTP. Works over standard HTTPS to any hosted MCP client.
+- **Endpoint:** `https://mcp.oluwadunsin.dev/mcp`.
+- **Auth:** the MCP client sends `X-Api-Key: <your merchant key>`. The server relays that header to the engine unchanged. Requests without a key are rejected at the HTTP layer with `401 unauthorized` before any tool logic runs.
+- **Rate limit:** per API key, token-bucket, 120 requests / minute by default. Exceeded budgets return `429` with `Retry-After`.
+- **Errors:** tool failures are returned as a structured envelope `{ code, message, retryable }` so clients can distinguish `invalid_input` (never retry) from `engine_error` (safe to retry).
+- **Health:** `GET https://mcp.oluwadunsin.dev/health` bypasses auth and is intended for load-balancer probes.
 
-## Current availability
+## When to use the MCP vs the REST API
 
-No public MCP tools are currently exposed. The pages in this section describe the intended tool groups and integration model.
+- **REST API** — programmatic integrations, merchant backends, automated systems.
+- **MCP server** — AI agents, dashboards driven by natural language, one-off ops questions ("what's my MRR", "retry failed invoices from yesterday", "why did churn go up").
+
+Both talk to the same tenant data with the same API key. Pick whichever fits the caller.
+
+## Next steps
+
+- [Connect a client](/mcp/connecting) — Claude Desktop, Cursor, Codex CLI, MCP Inspector.
+- [Explore the tools](/mcp/tools) — 15 tools with their inputs and the endpoints they wrap.
+- [Resources and prompts](/mcp/resources-and-prompts) — browsable URIs and reusable workflows.
+- [Security](/mcp/security) — auth, rate limits, `dry_run` for destructive tools, error envelope.

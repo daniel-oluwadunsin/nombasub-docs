@@ -1,0 +1,63 @@
+---
+title: "MCP Tools"
+description: "The 15 tools the MCP server exposes, grouped by intent."
+---
+
+# MCP Tools
+
+Every tool declares MCP annotations (`readOnlyHint`, `destructiveHint`, `idempotentHint`) so clients can gate confirmation UX correctly. Query tools are read-only and idempotent; action tools with `destructiveHint: true` accept a `dry_run: true` argument that fetches the target entity without mutating anything.
+
+## Query
+
+Read-only tools that return raw business data. All support pagination via `limit` and `page`.
+
+| Tool | Backend endpoint | Notable arguments |
+| --- | --- | --- |
+| `get_customers` | `GET /v1/customer/` | `search`, `from`, `to`, `limit`, `page` |
+| `get_subscriptions` | `GET /v1/subscription/` | `search`, `customer`, `plan` |
+| `get_invoices` | `GET /v1/invoice/` | `status` (`draft`/`open`/`paid`/`failed`/`refunded`), `search` |
+| `get_plans` | `GET /v1/plan/` | `status`, `interval`, `amount`, `search`, `from`, `to` |
+| `get_payment_attempts` | `GET /v1/checkout/payment-attempts` | `status`, `customerId`, `subscriptionId`, `invoiceId`, `from`, `to` |
+| `get_webhook_deliveries` | `GET /v1/webhook-deliveries/` | `status`, `eventType`, `from`, `to` |
+
+Dates are `YYYY-MM-DD`; the server validates format before hitting the engine.
+
+## Analytics
+
+Reuse the merchant's dashboard analytics. `compute_metric` and `compare_periods` share the same list of metric names.
+
+| Tool | Purpose |
+| --- | --- |
+| `compute_metric` | Return one metric (`mrr`, `arr`, `revenue`, `arpu`, `churn_rate`, …) over an optional date range. |
+| `compare_periods` | Fetch the analytics for two windows and return absolute delta plus percent change. Windows can be named presets (`this_month`, `last_month`, `last_7_days`, `last_30_days`, `last_90_days`, `this_year`, `last_year`) or explicit `from`/`to`. |
+| `explain_metric_change` | Combine current value, previous-period value, matching entries from the built-in `ai_insights` heuristics, and supporting signals (failed invoices, at-risk customers) into a single JSON explanation. |
+
+Supported metric names: `mrr`, `arr`, `revenue` / `gross_revenue`, `net_revenue`, `platform_fees`, `arpu`, `arps`, `active_subscriptions`, `new_subscriptions`, `canceled_subscriptions`, `past_due_subscriptions`, `total_subscriptions`, `total_customers`, `churn_rate`, `retention_rate`, `payment_success_rate`, `payment_failure_rate`, `revenue_growth_percent`, `total_payment_attempts`, `successful_payments`, `failed_payments`.
+
+## Action
+
+Execute billing operations. Destructive tools support `dry_run: true`.
+
+| Tool | Backend endpoint | Destructive | `dry_run` |
+| --- | --- | :-: | :-: |
+| `retry_payment` | `POST /v1/invoice/:id/retry` | ✅ | ✅ |
+| `cancel_subscription` | `POST /v1/subscription/:id/cancel` | ✅ | ✅ |
+| `create_portal_link` | `POST /v1/subscription/:id/checkout-link` | — | — |
+| `send_dunning_reminder` | `POST /v1/invoice/:id/send-reminder` | — | — |
+
+Arguments are always the subscription or invoice UUID / code, plus `send_email` on `create_portal_link` and `dry_run` on the destructive pair.
+
+<Warning>
+  `retry_payment` and `cancel_subscription` mutate state on Nomba (charges, mandate operations) and cannot be undone. If your client can't confirm with the user before running them, gate them behind `dry_run: true` first.
+</Warning>
+
+## Report
+
+Human-readable Markdown reports built on top of the analytics endpoint.
+
+| Tool | Contents |
+| --- | --- |
+| `generate_business_report` | Revenue, MRR/ARR, subscription health, payment performance, top plan, upcoming renewals, top customers, AI insights, heuristic recommendations. |
+| `generate_dunning_report` | Failure summary, table of recent failed invoices, table of at-risk customers, and recommended tool calls (`retry_payment`, `send_dunning_reminder`, `create_portal_link`). |
+
+Both accept optional `from` / `to` for the reporting window. Output is Markdown text so clients can render it directly in chats, Slack, or docs.
